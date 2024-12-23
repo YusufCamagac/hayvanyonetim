@@ -37,7 +37,7 @@ const AppRoutes = () => {
           index
           element={
             <PrivateRoute roles={['admin']}>
-              <AdminManagement />
+                <AdminManagement />
             </PrivateRoute>
           }
         />

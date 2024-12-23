@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { registerUser } from '../api';
+import { registerUser } from '../api'; // api dosyanızdan registerUser fonksiyonunu import edin
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -8,7 +8,7 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'user',
+    role: 'user', // Varsayılan rol
   });
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
@@ -28,13 +28,12 @@ const Register = () => {
 
     try {
       const response = await registerUser(formData);
-      
-      // Başarılı kayıt sonrası token'ı localStorage'a kaydet ve giriş yapmış olarak işaretle
-      localStorage.setItem('token', response.token);
+      const { token } = response.data;
+
+      localStorage.setItem('token', token);
       localStorage.setItem('isLoggedIn', 'true');
 
-      // Kullanıcıyı ana sayfaya yönlendir
-      navigate('/');
+      navigate('/'); // Kayıt başarılıysa ana sayfaya yönlendir
     } catch (error) {
       console.error('Kayıt hatası:', error);
       setMessage(

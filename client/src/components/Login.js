@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { loginUser } from '../api';
+import { loginUser } from '../api'; // api dosyanızdan loginUser fonksiyonunu import edin
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -8,11 +8,6 @@ const Login = () => {
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
-
-  useEffect(() => {
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('token');
-  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -30,8 +25,14 @@ const Login = () => {
       localStorage.setItem('token', token);
       localStorage.setItem('isLoggedIn', 'true');
 
-      const from = location.state?.from?.pathname || '/';
-      navigate(from); // Önceki sayfaya yönlendir
+      // Kullanıcı rolüne göre yönlendirme yap
+      const decodedToken = jwtDecode(token)
+      if (decodedToken.user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        const from = location.state?.from?.pathname || '/';
+        navigate(from);
+      }
     } catch (error) {
       console.error('Giriş hatası:', error);
       setMessage(
@@ -39,7 +40,6 @@ const Login = () => {
       );
     }
   };
-
   return (
     <div className="bg-background p-4 min-h-screen flex justify-center items-center">
       <div className="bg-card-bg p-8 rounded-lg shadow-lg w-96">
