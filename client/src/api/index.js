@@ -1,12 +1,12 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'http://localhost:5000/api'; // Sunucu adresiniz
 
 const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
-// Her istekte, localStorage'dan token'ı alıp Authorization başlığına ekle
+// Her istekte, localStorage'dan token'ı alıp Authorization başlığına ekle (Bearer token)
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -41,7 +41,7 @@ export const createMedicalRecord = (medicalRecordData) => api.post('/medical-rec
 export const updateMedicalRecord = (id, medicalRecordData) => api.put(`/medical-records/${id}`, medicalRecordData);
 export const deleteMedicalRecord = (id) => api.delete(`/medical-records/${id}`);
 
-// Kullanıcılar 
+// Kullanıcılar
 export const getUsers = () => api.get('/users');
 export const getUserById = (id) => api.get(`/users/${id}`);
 export const createUser = (userData) => api.post('/users', userData);
@@ -56,6 +56,13 @@ export const deleteReminder = (id) => api.delete(`/reminders/${id}`);
 
 // Kimlik Doğrulama
 export const loginUser = (credentials) => api.post('/auth/login', credentials);
-export const registerUser = (userData) => api.post('/auth/register', userData);
+export const registerUser = async (userData) => {
+  try {
+    const response = await api.post('/auth/register', userData);
+    return response.data; // Sadece token bilgisini döndür
+  } catch (error) {
+    throw error;
+  }
+};
 
 export default api;

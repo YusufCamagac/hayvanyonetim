@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { loginUser } from '../api';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -10,6 +11,7 @@ const Login = () => {
 
   useEffect(() => {
     localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('token');
   }, []);
 
   const handleLogin = async (e) => {
@@ -21,13 +23,20 @@ const Login = () => {
       return;
     }
 
-    // Simüle edilmiş backend isteği
-    if (username === 'admin' && password === 'password') {
+    try {
+      const response = await loginUser({ username, password });
+      const { token } = response.data;
+
+      localStorage.setItem('token', token);
       localStorage.setItem('isLoggedIn', 'true');
+
       const from = location.state?.from?.pathname || '/';
       navigate(from); // Önceki sayfaya yönlendir
-    } else {
-      setMessage('Kullanıcı adı veya şifre hatalı!');
+    } catch (error) {
+      console.error('Giriş hatası:', error);
+      setMessage(
+        error.response?.data?.msg || 'Kullanıcı adı veya şifre hatalı!'
+      );
     }
   };
 

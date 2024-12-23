@@ -25,18 +25,20 @@ const Register = () => {
       setMessage('Şifreler eşleşmiyor.');
       return;
     }
+
     try {
       const response = await registerUser(formData);
-      const { token } = response.data;
-
-      localStorage.setItem('token', token);
+      
+      // Başarılı kayıt sonrası token'ı localStorage'a kaydet ve giriş yapmış olarak işaretle
+      localStorage.setItem('token', response.token);
       localStorage.setItem('isLoggedIn', 'true');
 
+      // Kullanıcıyı ana sayfaya yönlendir
       navigate('/');
     } catch (error) {
       console.error('Kayıt hatası:', error);
       setMessage(
-        error.response.data.msg || 'Kayıt olurken bir hata oluştu.'
+        error.response?.data?.msg || 'Kayıt olurken bir hata oluştu.'
       );
     }
   };

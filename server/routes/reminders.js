@@ -1,15 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
-const config = require('../config/database'); // Veritabanı bağlantı bilgileri
+const config = require('../config/database');
 
 // Tüm hatırlatıcıları getir (GET /api/reminders)
 router.get('/', async (req, res) => {
     try {
-        const result = await sql.query`SELECT r.*, p.name AS petName FROM Reminders r JOIN Pets p ON r.petId = p.id`;
+        const query = `SELECT r.*, p.name AS petName FROM Reminders r JOIN Pets p ON r.petId = p.id`;
+        const result = await sql.query(query);
         res.json(result.recordset);
     } catch (err) {
-        console.error('Error fetching reminders:', err);
+        console.error('Hatırlatıcılar alınırken hata oluştu:', err.message);
         res.status(500).send('Server Error');
     }
 });
@@ -18,10 +19,17 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
     const { petId, type, date, notes } = req.body;
     try {
-        const result = await sql.query`INSERT INTO Reminders (petId, type, date, notes) VALUES (${petId}, ${type}, ${date}, ${notes})`;
-        res.status(201).json({ msg: 'Hatırlatıcı başarıyla eklendi', insertId: result.insertId }); // Düzeltildi: insertId eklenmesi
+        const query = `INSERT INTO Reminders (petId, type, date, notes) VALUES (@petId, @type, @date, @notes)`;
+        const request = new sql.Request();
+        request.input('petId', sql.Int, petId);
+        request.input('type', sql.VarChar, type);
+        request.input('date', sql.DateTime, date);
+        request.input('notes', sql.Text, notes);
+
+        const result = await request.query(query);
+        res.status(201).json({ msg: 'Hatırlatıcı başarıyla eklendi' });
     } catch (err) {
-        console.error('Error creating reminder:', err);
+        console.error('Hatırlatıcı eklenirken hata oluştu:', err.message);
         res.status(500).send('Server Error');
     }
 });
@@ -30,13 +38,17 @@ router.post('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     const { id } = req.params;
     try {
-        const result = await sql.query`SELECT * FROM Reminders WHERE id = ${id}`;
+        const query = `SELECT * FROM Reminders WHERE id = @id`;
+        const result = await new sql.Request()
+            .input('id', sql.Int, id)
+            .query(query);
+
         if (result.recordset.length === 0) {
             return res.status(404).json({ msg: 'Hatırlatıcı bulunamadı' });
         }
         res.json(result.recordset[0]);
     } catch (err) {
-        console.error('Error fetching reminder:', err);
+        console.error('Hatırlatıcı bilgisi alınırken hata oluştu:', err.message);
         res.status(500).send('Server Error');
     }
 });
@@ -46,13 +58,21 @@ router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const { petId, type, date, notes } = req.body;
     try {
-        const result = await sql.query`UPDATE Reminders SET petId = ${petId}, type = ${type}, date = ${date}, notes = ${notes} WHERE id = ${id}`;
+        const query = `UPDATE Reminders SET petId = @petId, type = @type, date = @date, notes = @notes WHERE id = @id`;
+        const request = new sql.Request()
+            .input('petId', sql.Int, petId)
+            .input('type', sql.VarChar, type)
+            .input('date', sql.DateTime, date)
+            .input('notes', sql.Text, notes)
+            .input('id', sql.Int, id);
+
+        const result = await request.query(query);
         if (result.rowsAffected[0] === 0) {
             return res.status(404).json({ msg: 'Hatırlatıcı bulunamadı' });
         }
         res.json({ msg: 'Hatırlatıcı güncellendi' });
     } catch (err) {
-        console.error('Error updating reminder:', err);
+        console.error('Hatırlatıcı güncellenirken hata oluştu:', err.message);
         res.status(500).send('Server Error');
     }
 });
@@ -61,13 +81,17 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     const { id } = req.params;
     try {
-        const result = await sql.query`DELETE FROM Reminders WHERE id = ${id}`;
+        const query = `DELETE FROM Reminders WHERE id = @id`;
+        const result = await new sql.Request()
+            .input('id', sql.Int, id)
+            .query(query);
+
         if (result.rowsAffected[0] === 0) {
             return res.status(404).json({ msg: 'Hatırlatıcı bulunamadı' });
         }
         res.json({ msg: 'Hatırlatıcı silindi' });
     } catch (err) {
-        console.error('Error deleting reminder:', err);
+        console.error('Hatırlatıcı silinirken hata oluştu:', err.message);
         res.status(500).send('Server Error');
     }
 });

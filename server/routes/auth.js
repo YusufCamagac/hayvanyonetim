@@ -10,16 +10,36 @@ router.post("/register", async (req, res) => {
     const { username, email, password, role } = req.body;
 
     try {
-        // Hash the password
+        // Kullanıcı adı veya e-posta zaten var mı kontrol et
+        let query = `SELECT * FROM Users WHERE username = @username OR email = @email`;
+        let result = await new sql.Request()
+            .input('username', sql.VarChar, username)
+            .input('email', sql.VarChar, email)
+            .query(query);
+
+        if (result.recordset.length > 0) {
+            return res.status(400).json({ msg: "Bu kullanıcı adı veya e-posta zaten kullanılıyor." });
+        }
+
+        // Şifreyi bcrypt ile hash'le
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Insert the new user into the database
-        const result = await sql.query`INSERT INTO Users (username, email, password, role) VALUES (${username}, ${email}, ${hashedPassword}, ${role})`;
+        // Yeni kullanıcıyı veritabanına ekle
+        query = `INSERT INTO Users (username, email, password, role) VALUES (@username, @email, @password, @role); SELECT SCOPE_IDENTITY() AS id;`;
+        result = await new sql.Request()
+            .input('username', sql.VarChar, username)
+            .input('email', sql.VarChar, email)
+            .input('password', sql.VarChar, hashedPassword)
+            .input('role', sql.VarChar, role)
+            .query(query);
 
-        // Generate JWT
+        // Eklenen kullanıcının ID'sini al
+        const userId = result.recordset[0].id;
+
+        // JWT oluştur
         const payload = {
             user: {
-                id: result.insertId,
+                id: userId,
                 role: role,
             },
         };
@@ -34,12 +54,8 @@ router.post("/register", async (req, res) => {
             }
         );
     } catch (err) {
-        console.error(err.message);
-        if (err.code === 'EREQUEST' && err.originalError.info.message.includes('Violation of UNIQUE KEY constraint')) {
-            return res.status(400).json({ msg: 'Bu kullanıcı adı veya e-posta zaten kullanımda' });
-        } else {
-            res.status(500).send("Server Hatası");
-        }
+        console.error('Kayıt sırasında hata oluştu:', err.message);
+        res.status(500).send("Sunucu Hatası");
     }
 });
 
@@ -48,22 +64,25 @@ router.post("/login", async (req, res) => {
     const { username, password } = req.body;
 
     try {
-        // Find the user by username
-        const result = await sql.query`SELECT * FROM Users WHERE username = ${username}`;
+        // Kullanıcıyı veritabanında ara
+        const query = `SELECT * FROM Users WHERE username = @username`;
+        const result = await new sql.Request()
+            .input('username', sql.VarChar, username)
+            .query(query);
+
         const user = result.recordset[0];
 
         if (!user) {
             return res.status(400).json({ msg: "Geçersiz kullanıcı adı veya şifre" });
         }
 
-        // Compare the provided password with the hashed password in the database
+        // Şifreyi kontrol et
         const isMatch = await bcrypt.compare(password, user.password);
-
         if (!isMatch) {
             return res.status(400).json({ msg: "Geçersiz kullanıcı adı veya şifre" });
         }
 
-        // Generate JWT
+        // JWT oluştur
         const payload = {
             user: {
                 id: user.id,
@@ -81,7 +100,7 @@ router.post("/login", async (req, res) => {
             }
         );
     } catch (err) {
-        console.error(err.message);
+        console.error('Giriş sırasında hata oluştu:', err.message);
         res.status(500).send("Sunucu Hatası");
     }
 });
