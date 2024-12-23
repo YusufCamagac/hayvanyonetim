@@ -4,6 +4,7 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  const userRole = isLoggedIn ? jwtDecode(localStorage.getItem('token')).user.role : null;
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -57,59 +58,64 @@ const Header = () => {
             }`}
           >
             <ul className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 text-lg">
-              <li>
-                <NavLink
-                  to="/pet-registration"
-                  className={({ isActive }) =>
-                    isActive
-                      ? 'text-primary-500'
-                      : 'hover:text-primary-500 text-white'
-                  }
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Evcil Hayvan Kaydı
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/appointment-scheduling"
-                  className={({ isActive }) =>
-                    isActive
-                      ? 'text-primary-500'
-                      : 'hover:text-primary-500 text-white'
-                  }
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Randevu Al
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/medical-records"
-                  className={({ isActive }) =>
-                    isActive
-                      ? 'text-primary-500'
-                      : 'hover:text-primary-500 text-white'
-                  }
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Tıbbi Kayıtlar
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/reminders"
-                  className={({ isActive }) =>
-                    isActive
-                      ? 'text-primary-500'
-                      : 'hover:text-primary-500 text-white'
-                  }
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Hatırlatıcılar
-                </NavLink>
-              </li>
               {isLoggedIn && (
+                <>
+                  <li>
+                    <NavLink
+                      to="/pet-registration"
+                      className={({ isActive }) =>
+                        isActive
+                          ? 'text-primary-500'
+                          : 'hover:text-primary-500 text-white'
+                      }
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Evcil Hayvan Kaydı
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink
+                      to="/appointment-scheduling"
+                      className={({ isActive }) =>
+                        isActive
+                          ? 'text-primary-500'
+                          : 'hover:text-primary-500 text-white'
+                      }
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Randevu Al
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink
+                      to="/medical-records"
+                      className={({ isActive }) =>
+                        isActive
+                          ? 'text-primary-500'
+                          : 'hover:text-primary-500 text-white'
+                      }
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Tıbbi Kayıtlar
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink
+                      to="/reminders"
+                      className={({ isActive }) =>
+                        isActive
+                          ? 'text-primary-500'
+                          : 'hover:text-primary-500 text-white'
+                      }
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Hatırlatıcılar
+                    </NavLink>
+                  </li>
+                </>
+              )}
+
+              {isLoggedIn && userRole === 'admin' && (
                 <>
                   <li>
                     <NavLink
@@ -126,7 +132,7 @@ const Header = () => {
                   </li>
                   <li>
                     <NavLink
-                      to="/user-management"
+                      to="/admin/users"
                       className={({ isActive }) =>
                         isActive
                           ? 'text-primary-500'
