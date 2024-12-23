@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
-const config = require('../config/database');
+const config = require('../config/database'); // Veritabanı bağlantı bilgileri
 const authenticateToken = require('../middleware/authMiddleware');
 
-// Tüm randevuları getir (GET /api/appointments) - Yetkilendirme eklenmeli
+// Tüm randevuları getir (GET /api/appointments) - Yetkilendirme eklendi
 router.get('/', authenticateToken, async (req, res) => {
     try {
         const query = `SELECT a.*, p.name AS petName FROM Appointments a JOIN Pets p ON a.petId = p.id`;
@@ -16,7 +16,7 @@ router.get('/', authenticateToken, async (req, res) => {
     }
 });
 
-// Yeni bir randevu oluştur (POST /api/appointments) - Yetkilendirme eklenmeli
+// Yeni bir randevu oluştur (POST /api/appointments) - Yetkilendirme eklendi
 router.post('/', authenticateToken, async (req, res) => {
     const { petId, date, provider, reason } = req.body;
     try {
@@ -35,7 +35,7 @@ router.post('/', authenticateToken, async (req, res) => {
     }
 });
 
-// Belirli bir randevuyu getir (GET /api/appointments/:id) - Yetkilendirme eklenmeli
+// Belirli bir randevuyu getir (GET /api/appointments/:id) - Yetkilendirme eklendi
 router.get('/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {
@@ -54,7 +54,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
     }
 });
 
-// Randevuyu güncelle (PUT /api/appointments/:id) - Yetkilendirme eklenmeli
+// Randevuyu güncelle (PUT /api/appointments/:id) - Yetkilendirme eklendi
 router.put('/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const { petId, date, provider, reason } = req.body;
@@ -78,7 +78,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     }
 });
 
-// Randevuyu sil (DELETE /api/appointments/:id) - Yetkilendirme eklenmeli
+// Randevuyu sil (DELETE /api/appointments/:id) - Yetkilendirme eklendi
 router.delete('/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { getPetMedications } from '../api';
 
+
 const PetMedications = () => {
   const { petId } = useParams();
   const [medications, setMedications] = useState([]);

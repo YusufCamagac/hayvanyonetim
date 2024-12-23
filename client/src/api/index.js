@@ -11,7 +11,7 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+      config.headers['Authorization'] = `Bearer ${token}`; // 'Authorizatioin' -> 'Authorization'
     }
     return config;
   },
@@ -37,9 +37,12 @@ export const deleteAppointment = (id) => api.delete(`/appointments/${id}`);
 // Tıbbi Kayıtlar
 export const getMedicalRecords = () => api.get('/medical-records');
 export const getMedicalRecordById = (id) => api.get(`/medical-records/${id}`);
-export const createMedicalRecord = (medicalRecordData) => api.post('/medical-records', medicalRecordData);
+
 export const updateMedicalRecord = (id, medicalRecordData) => api.put(`/medical-records/${id}`, medicalRecordData);
 export const deleteMedicalRecord = (id) => api.delete(`/medical-records/${id}`);
+
+// Yeni Tıbbi Kayıt Ekleme
+export const createMedicalRecord = (medicalRecordData) => api.post('/medical-records', medicalRecordData);
 
 // Kullanıcılar 
 export const getUsers = () => api.get('/users');
