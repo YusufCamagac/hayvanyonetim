@@ -54,6 +54,12 @@ export const createReminder = (reminderData) => api.post('/reminders', reminderD
 export const updateReminder = (id, reminderData) => api.put(`/reminders/${id}`, reminderData);
 export const deleteReminder = (id) => api.delete(`/reminders/${id}`);
 
+// Evcil Hayvan İlaç ve Aşıları
+export const getPetMedications = (petId) => api.get(`/pets/${petId}/medications`);
+export const createPetMedication = (petId, medicationData) => api.post(`/pets/${petId}/medications`, medicationData);
+export const updatePetMedication = (petId, medicationId, medicationData) => api.put(`/pets/${petId}/medications/${medicationId}`, medicationData);
+export const deletePetMedication = (petId, medicationId) => api.delete(`/pets/${petId}/medications/${medicationId}`);
+
 // Raporlar
 export const getAppointmentReport = (filters) => api.get('/reports/appointments', { params: filters });
 export const getPetReport = (filters) => api.get('/reports/pets', { params: filters });

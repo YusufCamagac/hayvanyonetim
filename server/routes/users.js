@@ -30,11 +30,7 @@ router.post('/', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Yeni kullanıcıyı veritabanına ekle ve ID'yi al
-    const query = `
-      INSERT INTO Users (username, email, password, role) 
-      OUTPUT INSERTED.id
-      VALUES (@username, @email, @password, @role);
-    `;
+    const query = `INSERT INTO Users (username, email, password, role) VALUES (@username, @email, @password, @role); SELECT SCOPE_IDENTITY() AS id;`;
     const request = new sql.Request();
     request.input('username', sql.VarChar, username);
     request.input('email', sql.VarChar, email);
@@ -136,9 +132,10 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
 // Kullanıcıyı sil (DELETE /api/users/:id) - Sadece admin
 router.delete('/:id', authenticateToken, async (req, res) => {
-  const { id } = req.params;
+  
+    const { id } = req.params;
 
-  // Sadece admin yetkisi olanlar kullanıcı silebilir
+    // Sadece admin yetkisi olanlar kullanıcı silebilir
   if (req.user.role !== 'admin') {
     return res.status(403).json({ msg: 'Bu işlemi yapmak için yetkiniz yok.' });
   }
@@ -164,7 +161,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
       res.json({ msg: 'Kullanıcı silindi' });
   } catch (err) {
       console.error('Kullanıcı silinirken hata oluştu:', err.message);
-      res.status(500).send('Server Error');
+      res.status(500).send('Sunucu Hatası');
   }
 });
 

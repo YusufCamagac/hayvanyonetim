@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
 const config = require('../config/database');
+const authenticateToken = require('../middleware/authMiddleware');
 
-// Tüm hatırlatıcıları getir (GET /api/reminders)
-router.get('/', async (req, res) => {
+// Tüm hatırlatıcıları getir (GET /api/reminders) - Yetkilendirme eklendi
+router.get('/', authenticateToken, async (req, res) => {
     try {
         const query = `SELECT r.*, p.name AS petName FROM Reminders r JOIN Pets p ON r.petId = p.id`;
         const result = await sql.query(query);
@@ -15,8 +16,8 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Yeni hatırlatıcı oluştur (POST /api/reminders)
-router.post('/', async (req, res) => {
+// Yeni hatırlatıcı oluştur (POST /api/reminders) - Yetkilendirme eklendi
+router.post('/', authenticateToken, async (req, res) => {
     const { petId, type, date, notes } = req.body;
     try {
         const query = `INSERT INTO Reminders (petId, type, date, notes) VALUES (@petId, @type, @date, @notes)`;
@@ -25,7 +26,7 @@ router.post('/', async (req, res) => {
         request.input('type', sql.VarChar, type);
         request.input('date', sql.DateTime, date);
         request.input('notes', sql.Text, notes);
-        
+
         const result = await request.query(query);
         res.status(201).json({ msg: 'Hatırlatıcı başarıyla eklendi' });
     } catch (err) {
@@ -34,8 +35,8 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Belirli bir hatırlatıcıyı getir (GET /api/reminders/:id)
-router.get('/:id', async (req, res) => {
+// Belirli bir hatırlatıcıyı getir (GET /api/reminders/:id) - Yetkilendirme eklendi
+router.get('/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {
         const query = `SELECT * FROM Reminders WHERE id = @id`;
@@ -53,8 +54,8 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// Hatırlatıcıyı güncelle (PUT /api/reminders/:id)
-router.put('/:id', async (req, res) => {
+// Hatırlatıcıyı güncelle (PUT /api/reminders/:id) - Yetkilendirme eklendi
+router.put('/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const { petId, type, date, notes } = req.body;
     try {
@@ -77,8 +78,8 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// Hatırlatıcıyı sil (DELETE /api/reminders/:id)
-router.delete('/:id', async (req, res) => {
+// Hatırlatıcıyı sil (DELETE /api/reminders/:id) - Yetkilendirme eklendi
+router.delete('/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {
         const query = `DELETE FROM Reminders WHERE id = @id`;

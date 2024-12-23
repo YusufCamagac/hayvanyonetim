@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getAppointmentReport, getPetReport, getUserReport } from '../api'; // getPetReport ve getUserReport eklendi
+import { getAppointmentReport, getPetReport, getUserReport } from '../api';
 import {
   TextField,
   Button,
@@ -60,18 +60,18 @@ const AdminReports = () => {
 
   // Randevu Raporu için submit fonksiyonu
   const handleSubmit = async (e) => {
-      e.preventDefault();
-      setLoading(true);
-      setError(null);
-      try {
-          const response = await getAppointmentReport(filters);
-          setReportData(response.data);
-      } catch (err) {
-          console.error('Randevu raporu alınırken hata oluştu:', err);
-          setError('Randevu raporu alınamadı.');
-      } finally {
-          setLoading(false);
-      }
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await getAppointmentReport(filters);
+      setReportData(response.data);
+    } catch (err) {
+      console.error('Randevu raporu alınırken hata oluştu:', err);
+      setError('Randevu raporu alınamadı.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Evcil Hayvan Raporu için submit fonksiyonu
@@ -451,66 +451,70 @@ const AdminReports = () => {
                 ? 'Evcil Hayvan Raporu'
                 : 'Kullanıcı Raporu'}
             </h3>
-            {/* Tablo gösterimi */}
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
-                {reportType === 'appointments' && (
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tarih
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Evcil Hayvan
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tür
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Veteriner
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Sebep
-                    </th>
-                  </tr>
-                )}
-                {reportType === 'pets' && (
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Ad
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tür
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Cins
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Yaş
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Cinsiyet
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tıbbi Geçmiş
-                    </th>
-                  </tr>
-                )}
-                {reportType === 'users' && (
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      ID
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Kullanıcı Adı
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      E-posta
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Rol
-                    </th>
-                  </tr>
-                )}
+                <tr>
+                  {reportType === 'appointments' && (
+                    <>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Tarih
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Evcil Hayvan
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Tür
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Veteriner
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Sebep
+                      </th>
+                    </>
+                  )}
+                  {reportType === 'pets' && (
+                    <>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Ad
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Tür
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Cins
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Yaş
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Cinsiyet
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Tıbbi Geçmiş
+                      </th>
+                    </>
+                  )}
+                  {reportType === 'users' && (
+                    <>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        ID
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Kullanıcı Adı
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        E-posta
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Rol
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Kayıt Tarihi
+                      </th>
+                    </>
+                  )}
+                </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {reportData.map((item) => (
@@ -569,6 +573,9 @@ const AdminReports = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {item.role}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {new Date(item.createdAt).toLocaleString()}
                         </td>
                       </>
                     )}

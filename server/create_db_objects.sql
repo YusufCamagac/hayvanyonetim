@@ -200,3 +200,61 @@ GO
 PRINT 'Pets tablosu için indexler oluşturuldu.'
 
 
+
+-- Medications Tablosu
+IF OBJECT_ID(N'Medications', N'U') IS NULL
+BEGIN
+    CREATE TABLE Medications (
+        id INT IDENTITY(1,1) PRIMARY KEY,
+        petId INT NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        startDate DATE,
+        endDate DATE,
+        dosage VARCHAR(255),
+        frequency VARCHAR(255),
+        notes TEXT,
+        FOREIGN KEY (petId) REFERENCES Pets(id)
+    );
+    PRINT 'Medications tablosu oluşturuldu.'
+END
+ELSE
+BEGIN
+    PRINT 'Medications tablosu zaten var.'
+END
+GO
+
+
+
+-- Stored Procedure oluşturma (kullanıcı ve ilişkili verilerini silmek için)
+IF OBJECT_ID (N'sp_DeleteUserAndRelatedData', N'P') IS NOT NULL  
+    DROP PROCEDURE sp_DeleteUserAndRelatedData;  
+GO
+CREATE PROCEDURE sp_DeleteUserAndRelatedData
+    @userId INT
+AS
+BEGIN
+    -- Kullanıcıya ait evcil hayvanların id'lerini bul
+    DECLARE @petIds TABLE (id INT);
+    INSERT INTO @petIds SELECT id FROM Pets WHERE id IN (SELECT petId FROM Appointments WHERE petId IN (SELECT id FROM Pets WHERE id IN (SELECT petId FROM Appointments WHERE petId IN (SELECT id FROM Pets WHERE id IN (SELECT petId FROM Reminders WHERE petId IN (SELECT id FROM Pets WHERE id IN (SELECT petId FROM MedicalRecords WHERE petId IN (SELECT id FROM Pets WHERE id IN (SELECT petId FROM Users WHERE id = @userId)))))))));
+
+    -- İlaç ve Aşıları sil (Medications tablosunu da dahil et)
+    DELETE FROM Medications WHERE petId IN (SELECT id FROM @petIds);
+
+    -- Randevuları sil
+    DELETE FROM Appointments WHERE petId IN (SELECT id FROM @petIds);
+
+    -- Tıbbi kayıtları sil
+    DELETE FROM MedicalRecords WHERE petId IN (SELECT id FROM @petIds);
+
+    -- Hatırlatıcıları sil
+    DELETE FROM Reminders WHERE petId IN (SELECT id FROM @petIds);
+
+    -- Evcil hayvanları sil
+    DELETE FROM Pets WHERE id IN (SELECT id FROM @petIds);
+
+    -- Kullanıcıyı sil
+    DELETE FROM Users WHERE id = @userId;
+END;
+GO
+
+PRINT 'sp_DeleteUserAndRelatedData stored procedure güncellendi.'

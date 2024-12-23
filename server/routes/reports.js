@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
 const config = require('../config/database');
-const authenticateToken = require('../middleware/authMiddleware');
+const authenticateToken = require('../middleware/authMiddleware'); // JWT doğrulaması için middleware
 
 // Randevu Raporu (GET /api/reports/appointments) - Sadece admin
 router.get('/appointments', authenticateToken, async (req, res) => {
@@ -116,7 +116,7 @@ router.get('/users', authenticateToken, async (req, res) => {
     res.json(result.recordset);
   } catch (err) {
     console.error('Kullanıcı raporu alınırken hata oluştu:', err.message);
-    res.status(500).send('Server Error');
+    res.status(500).send('Sunucu Hatası');
   }
 });
 

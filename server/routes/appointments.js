@@ -2,21 +2,22 @@ const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
 const config = require('../config/database');
+const authenticateToken = require('../middleware/authMiddleware');
 
-// Tüm randevuları getir (GET /api/appointments)
-router.get('/', async (req, res) => {
+// Tüm randevuları getir (GET /api/appointments) - Yetkilendirme eklenmeli
+router.get('/', authenticateToken, async (req, res) => {
     try {
-        const query = `SELECT * FROM vw_AppointmentsWithPets`; // View kullanımı
+        const query = `SELECT a.*, p.name AS petName FROM Appointments a JOIN Pets p ON a.petId = p.id`;
         const result = await sql.query(query);
         res.json(result.recordset);
     } catch (err) {
         console.error('Randevu listesi alınırken hata oluştu:', err.message);
-        res.status(500).send('Server Error');
+        res.status(500).send('Sunucu Hatası');
     }
 });
 
-// Yeni bir randevu oluştur (POST /api/appointments)
-router.post('/', async (req, res) => {
+// Yeni bir randevu oluştur (POST /api/appointments) - Yetkilendirme eklenmeli
+router.post('/', authenticateToken, async (req, res) => {
     const { petId, date, provider, reason } = req.body;
     try {
         const query = `INSERT INTO Appointments (petId, date, provider, reason) VALUES (@petId, @date, @provider, @reason)`;
@@ -34,8 +35,8 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Belirli bir randevuyu getir (GET /api/appointments/:id)
-router.get('/:id', async (req, res) => {
+// Belirli bir randevuyu getir (GET /api/appointments/:id) - Yetkilendirme eklenmeli
+router.get('/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {
         const query = `SELECT * FROM Appointments WHERE id = @id`;
@@ -53,8 +54,8 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// Randevuyu güncelle (PUT /api/appointments/:id)
-router.put('/:id', async (req, res) => {
+// Randevuyu güncelle (PUT /api/appointments/:id) - Yetkilendirme eklenmeli
+router.put('/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const { petId, date, provider, reason } = req.body;
     try {
@@ -77,8 +78,8 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// Randevuyu sil (DELETE /api/appointments/:id)
-router.delete('/:id', async (req, res) => {
+// Randevuyu sil (DELETE /api/appointments/:id) - Yetkilendirme eklenmeli
+router.delete('/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {
         const query = `DELETE FROM Appointments WHERE id = @id`;

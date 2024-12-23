@@ -22,24 +22,24 @@ const Register = () => {
     setMessage('');
 
     if (formData.password !== formData.confirmPassword) {
-        setMessage('Şifreler eşleşmiyor.');
-        return;
+      setMessage('Şifreler eşleşmiyor.');
+      return;
     }
-
     try {
-        const response = await registerUser(formData);
-        // response.data zaten token'ı içeriyor
-        const token = response.data.token;
+      const response = await registerUser(formData);
+      
+      // Kayıt başarılı, token'ı localStorage'a kaydet
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('isLoggedIn', 'true');
 
-        localStorage.setItem('token', token);
-        localStorage.setItem('isLoggedIn', 'true');
-
-        navigate('/');
+      navigate('/'); // Ana sayfaya yönlendir
     } catch (error) {
-        console.error('Kayıt hatası:', error);
-        setMessage(error.response?.data?.msg || 'Kayıt olurken bir hata oluştu.');
+      console.error('Kayıt hatası:', error);
+      setMessage(
+        error.response?.data?.msg || 'Kayıt olurken bir hata oluştu.'
+      );
     }
-};
+  };
 
   return (
     <div className="bg-background min-h-screen flex items-center justify-center">
@@ -63,8 +63,14 @@ const Register = () => {
               name="username"
               value={formData.username}
               onChange={handleChange}
-              className="
-                w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              className=" w-full px-3 py-2 border rounded-md
+                bg-gray-700
+                text-gray-100
+                placeholder-gray-400
+                focus:outline-none
+                focus:ring-2
+                focus:ring-yellow-400
+              "
               required
               placeholder="Kullanıcı adınızı girin"
             />
@@ -80,7 +86,11 @@ const Register = () => {
               value={formData.email}
               onChange={handleChange}
               className="
-                w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400
+                focus:outline-none
+                focus:ring-2
+                focus:ring-yellow-400
+              "
               required
               placeholder="E-posta adresinizi girin"
             />
@@ -95,7 +105,9 @@ const Register = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2
+                focus:ring-yellow-400
+              "
               required
               placeholder="Şifrenizi girin"
             />
@@ -113,7 +125,13 @@ const Register = () => {
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
-              className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              className=" w-full px-3 py-2 border rounded-md bg-gray-700
+                text-gray-100
+                placeholder-gray-400
+                focus:outline-none
+                focus:ring-2
+                focus:ring-yellow-400
+              "
               required
               placeholder="Şifrenizi tekrar girin"
             />

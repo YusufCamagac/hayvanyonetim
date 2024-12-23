@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom'; // Link import edildi
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { loginUser } from '../api';
-import { jwtDecode } from "jwt-decode";
-
+import { jwtDecode } from 'jwt-decode';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -33,7 +32,7 @@ const Login = () => {
       localStorage.setItem('isLoggedIn', 'true');
 
       // Kullanıcı rolüne göre yönlendirme yap
-      const decodedToken = jwtDecode(token)
+      const decodedToken = jwtDecode(token);
       if (decodedToken.user.role === 'admin') {
         navigate('/admin');
       } else {
@@ -42,9 +41,8 @@ const Login = () => {
       }
     } catch (error) {
       console.error('Giriş hatası:', error);
-        console.error('Hata Detayı:', error.response); // Detaylı hata mesajını yazdır
-        setMessage(
-          error.response?.data?.msg || 'Kullanıcı adı veya şifre hatalı!'
+      setMessage(
+        error.response?.data?.msg || 'Kullanıcı adı veya şifre hatalı!'
       );
     }
   };

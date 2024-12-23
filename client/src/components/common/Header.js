@@ -15,8 +15,13 @@ const Header = () => {
     
     // Kullanıcı rolünü JWT'den çöz ve state'e kaydet
     if (isLoggedIn && token) {
-      const decoded = jwtDecode(token);
-      setUserRole(decoded.user.role);
+      try {
+        const decoded = jwtDecode(token);
+        setUserRole(decoded.user.role);
+      } catch (error) {
+        console.error("JWT decode hatası:", error);
+        setUserRole(null);
+      }
     } else {
       setUserRole(null);
     }

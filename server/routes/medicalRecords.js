@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
 const config = require('../config/database');
+const authenticateToken = require('../middleware/authMiddleware');
 
-// Tüm tıbbi kayıtları getir (GET /api/medical-records)
-router.get('/', async (req, res) => {
+// Tüm tıbbi kayıtları getir (GET /api/medical-records) - Yetkilendirme eklendi
+router.get('/', authenticateToken, async (req, res) => {
     try {
         const query = `SELECT mr.*, p.name AS petName FROM MedicalRecords mr JOIN Pets p ON mr.petId = p.id`;
         const result = await sql.query(query);
@@ -15,8 +16,8 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Yeni bir tıbbi kayıt oluştur (POST /api/medical-records)
-router.post('/', async (req, res) => {
+// Yeni bir tıbbi kayıt oluştur (POST /api/medical-records) - Yetkilendirme eklendi
+router.post('/', authenticateToken, async (req, res) => {
     const { petId, recordDate, description } = req.body;
     try {
         const query = `INSERT INTO MedicalRecords (petId, recordDate, description) VALUES (@petId, @recordDate, @description)`;
@@ -33,8 +34,8 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Belirli bir tıbbi kaydı getir (GET /api/medical-records/:id)
-router.get('/:id', async (req, res) => {
+// Belirli bir tıbbi kaydı getir (GET /api/medical-records/:id) - Yetkilendirme eklendi
+router.get('/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {
         const query = `SELECT * FROM MedicalRecords WHERE id = @id`;
@@ -52,8 +53,8 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// Tıbbi kaydı güncelle (PUT /api/medical-records/:id)
-router.put('/:id', async (req, res) => {
+// Tıbbi kaydı güncelle (PUT /api/medical-records/:id) - Yetkilendirme eklendi
+router.put('/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const { petId, recordDate, description } = req.body;
     try {
@@ -75,8 +76,8 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// Tıbbi kaydı sil (DELETE /api/medical-records/:id)
-router.delete('/:id', async (req, res) => {
+// Tıbbi kaydı sil (DELETE /api/medical-records/:id) - Yetkilendirme eklendi
+router.delete('/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {
         const query = `DELETE FROM MedicalRecords WHERE id = @id`;
