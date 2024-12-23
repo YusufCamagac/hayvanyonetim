@@ -1,16 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-  const userRole = isLoggedIn ? jwtDecode(localStorage.getItem('token')).user.role : null;
+  const token = localStorage.getItem('token');
+  const [userRole, setUserRole] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
     setIsMenuOpen(false);
-  }, [location]);
+    
+    // Kullanıcı rolünü JWT'den çöz ve state'e kaydet
+    if (isLoggedIn && token) {
+      const decoded = jwtDecode(token);
+      setUserRole(decoded.user.role);
+    } else {
+      setUserRole(null);
+    }
+  }, [isLoggedIn, token, location]);
 
   const handleLogout = () => {
     localStorage.removeItem('isLoggedIn');
@@ -163,17 +173,6 @@ const Header = () => {
                   </Link>
                 )}
               </li>
-              {!isLoggedIn && (
-                <li>
-                  <Link
-                    to="/register"
-                    className="hover:text-primary-500 text-white"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Kayıt Ol
-                  </Link>
-                </li>
-              )}
             </ul>
           </nav>
         </div>

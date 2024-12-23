@@ -32,16 +32,7 @@ const AppointmentScheduling = () => {
   };
 
   const handleChange = (e) => {
-    if (e.target.name === "time") {
-      const [hours, minutes] = e.target.value.split(":");
-      const newTime = dayjs()
-        .set("hour", hours)
-        .set("minute", minutes)
-        .set("second", 0);
-      setAppointment({ ...appointment, date: newTime });
-    } else {
       setAppointment({ ...appointment, [e.target.name]: e.target.value });
-    }
   };
 
   const handleSubmit = async (e) => {

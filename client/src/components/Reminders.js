@@ -69,7 +69,7 @@ const Reminders = () => {
       setIsLoading(false);
     }
   };
-
+  
   return (
     <div className="bg-background p-4">
       <div className="container mx-auto">

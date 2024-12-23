@@ -1,17 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
-const config = require('../config/database'); // Veritabanı bağlantı bilgileri
+const config = require('../config/database');
 
 // Tüm randevuları getir (GET /api/appointments)
 router.get('/', async (req, res) => {
     try {
-        const query = `SELECT a.*, p.name AS petName FROM Appointments a JOIN Pets p ON a.petId = p.id`;
+        const query = `SELECT * FROM vw_AppointmentsWithPets`; // View kullanımı
         const result = await sql.query(query);
         res.json(result.recordset);
     } catch (err) {
         console.error('Randevu listesi alınırken hata oluştu:', err.message);
-        res.status(500).send('Sunucu Hatası');
+        res.status(500).send('Server Error');
     }
 });
 

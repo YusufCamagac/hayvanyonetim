@@ -1,1 +1,62 @@
 node_modules
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# production
+/build
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Node Modules
+/node_modules
+
+# Build Dizini (React için, eğer varsa)
+/client/build
+
+# Log Dosyaları
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ortam Değişkenleri Dosyası (Hassas Bilgiler İçerebilir)
+.env
+
+# İşletim Sistemi Tarafından Oluşturulan Dosyalar
+.DS_Store
+Thumbs.db
+
+# Editör/IDE Dosyaları
+.vscode/
+.idea/
+
+# Yedekleme Dosyaları
+*.bak
+*.bak2
+
+# İsteğe Bağlı (Kullanılıyorsa)
+*.log  # Log dosyalarını görmezden gelmek isterseniz
+
+# İsteğe Bağlı (Tüm node_modules klasörlerini görmezden gelmek için)
+**/node_modules
+
+# Yerel geliştirme veritabanı dosyaları (geliştirme ortamınızda kalmasını istiyorsanız)
+# Bu dosyaların sunucuya yüklenmediğinden ve .env dosyasında yer almadığından emin olun
+*.mdf
+*.ldf

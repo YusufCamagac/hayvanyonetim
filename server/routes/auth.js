@@ -10,6 +10,7 @@ router.post("/register", async (req, res) => {
   const { username, email, password, role } = req.body;
 
   try {
+    console.log(process.env.JWT_SECRET);
     // Kullanıcı adı veya e-posta zaten var mı kontrol et
     let query = `SELECT * FROM Users WHERE username = @username OR email = @email`;
     let result = await new sql.Request()
@@ -27,13 +28,13 @@ router.post("/register", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Yeni kullanıcıyı veritabanına ekle
-    query = `INSERT INTO Users (username, email, password, role) VALUES (@username, @email, @password, @role); SELECT SCOPE_IDENTITY() AS id;`;
+    qquery = `INSERT INTO Users (username, email, password, role) VALUES (@username, @email, @password, @role); SELECT SCOPE_IDENTITY() AS id;`;
     result = await new sql.Request()
-      .input('username', sql.VarChar, username)
-      .input('email', sql.VarChar, email)
-      .input('password', sql.VarChar, hashedPassword)
-      .input('role', sql.VarChar, role)
-      .query(query);
+        .input('username', sql.VarChar, username)
+        .input('email', sql.VarChar, email)
+        .input('password', sql.VarChar, hashedPassword)
+        .input('role', sql.VarChar, role)
+        .query(query);
 
     // Eklenen kullanıcının ID'sini al
     const userId = result.recordset[0].id;
@@ -56,8 +57,14 @@ router.post("/register", async (req, res) => {
       }
     );
   } catch (err) {
-    console.error('Kayıt sırasında hata oluştu:', err);
-    res.status(500).send("Sunucu Hatası");
+    console.error('Kayıt sırasında hata oluştu:', err); // Tüm hatayı yazdır
+    console.error('Hata Mesajı:', err.message); // Hata mesajını yazdır
+    console.error('SQL Hatası:', err.originalError); // SQL hatası varsa detaylarını yazdır
+    if (err.code === 'EREQUEST' && err.originalError.info.message.includes('Violation of UNIQUE KEY constraint')) {
+        return res.status(400).json({ msg: 'Bu kullanıcı adı veya e-posta zaten kullanımda' });
+    } else {
+        res.status(500).send("Sunucu Hatası");
+    }
   }
 });
 
@@ -98,7 +105,7 @@ router.post("/login", async (req, res) => {
       { expiresIn: "1h" },
       (err, token) => {
         if (err) throw err;
-        res.json({ token });
+        res.status(201).json({ token }); // Sadece token'ı içeren bir obje döndür
       }
     );
   } catch (err) {

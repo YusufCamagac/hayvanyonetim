@@ -15,6 +15,7 @@ import Login from '../components/Login';
 import MainLayout from '../layouts/MainLayout';
 import AdminLayout from '../layouts/AdminLayout';
 import Register from '../components/Register';
+import AdminReports from '../components/AdminReports';
 
 const AppRoutes = () => {
   return (
@@ -22,17 +23,9 @@ const AppRoutes = () => {
       {/* Ana Layout */}
       <Route path="/" element={<MainLayout />}>
         <Route index element={<HomePage />} />
+        <Route path="pet-registration" element={<PetRegistration />} />
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
-        {/* Giriş yapmış kullanıcılar için özel rotalar */}
-        <Route
-          path="pet-registration"
-          element={
-            <PrivateRoute>
-              <PetRegistration />
-            </PrivateRoute>
-          }
-        />
         <Route
           path="appointment-scheduling"
           element={
@@ -77,11 +70,20 @@ const AppRoutes = () => {
           </PrivateRoute>
         }
       >
+        <Route
+          path="/admin/reports"
+          element={
+              <PrivateRoute roles={['admin']}>
+                  <AdminReports />
+              </PrivateRoute>
+            }
+        />
         <Route index element={<AdminManagement />} />
         <Route path="users" element={<UserManagement />} />
         <Route path="pets" element={<PetsManagement />} />
         <Route path="appointments" element={<AppointmentsManagement />} />
         <Route path="medical-records" element={<MedicalRecordsManagement />} />
+        <Route path="reports" element={<AdminReports />} />
       </Route>
 
       {/* Tanımsız rotalar için yönlendirme */}

@@ -17,7 +17,8 @@ CREATE TABLE Users (
   username VARCHAR(255) NOT NULL UNIQUE,
   password VARCHAR(255) NOT NULL,
   email VARCHAR(255) NOT NULL UNIQUE,
-  role VARCHAR(255) DEFAULT 'user'
+  role VARCHAR(255) DEFAULT 'user',
+  createdAt DATETIME DEFAULT GETDATE() -- Kayıt tarihi sütunu eklendi
 );
 PRINT 'Users tablosu oluşturuldu.'
 END
@@ -103,23 +104,8 @@ BEGIN
 END
 GO
 
--- Trigger oluşturma (şifre hash'leme için)
-IF OBJECT_ID ('trg_HashPassword', 'TR') IS NOT NULL
-    DROP TRIGGER trg_HashPassword;
-GO
-
-CREATE TRIGGER trg_HashPassword
-ON Users
-INSTEAD OF INSERT
-AS
-BEGIN
-  INSERT INTO Users (username, password, email, role)
-  SELECT username, pwdencrypt(password), email, role -- Şifreyi burada hash'leyin (Gerçek uygulamada bcrypt kullanın)
-  FROM inserted;
-END;
-GO
-
-PRINT 'trg_HashPassword trigger oluşturuldu.'
+-- Artık trigger kullanmıyoruz, şifre hash'leme sunucu tarafında yapılıyor
+-- (bkz. routes/auth.js)
 
 -- Fonksiyon oluşturma (ortalama yaş hesabı için)
 IF OBJECT_ID (N'calculate_average_pet_age', N'FN') IS NOT NULL  
@@ -185,3 +171,32 @@ END;
 GO
 
 PRINT 'sp_DeleteUserAndRelatedData stored procedure oluşturuldu.'
+
+-- Örnek Admin Kullanıcısı Ekleme (ŞİFREYİ DEĞİŞTİRMEYİ UNUTMAYIN!)
+-- ('admin', PWDENCRYPT('admin123'), 'admin@example.com', 'admin')
+-- ('admin', '$2b$10$EXAMPLE_HASHED_PASSWORD', 'admin@example.com', 'admin')
+-- BURADA KENDİ ŞİFRENİZİ HASHLEYİP KOYMANIZ GEREKİYOR. AŞAĞIDAKİ SATIR SADECE BİR ÖRNEKTİR
+INSERT INTO Users (username, password, email, role) VALUES
+('admin', '123', 'admin@example.com', 'admin');
+
+PRINT 'Örnek admin kullanıcısı eklendi.';
+GO
+
+-- View oluşturma (randevu ve ilgili evcil hayvan bilgileri için)
+CREATE OR ALTER VIEW vw_AppointmentsWithPets AS
+SELECT a.id AS AppointmentId, a.date AS AppointmentDate, a.provider, a.reason,
+       p.id AS PetId, p.name AS PetName, p.species, p.breed
+FROM Appointments a
+JOIN Pets p ON a.petId = p.id;
+GO
+
+PRINT 'vw_AppointmentsWithPets view oluşturuldu.'
+
+-- Index oluşturma (Pets tablosunda name ve species sütunları için)
+CREATE INDEX IX_Pets_Name ON Pets (name);
+CREATE INDEX IX_Pets_Species ON Pets (species);
+GO
+
+PRINT 'Pets tablosu için indexler oluşturuldu.'
+
+

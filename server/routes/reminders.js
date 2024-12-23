@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
         res.json(result.recordset);
     } catch (err) {
         console.error('Hatırlatıcılar alınırken hata oluştu:', err.message);
-        res.status(500).send('Server Error');
+        res.status(500).send('Sunucu Hatası');
     }
 });
 
@@ -25,12 +25,12 @@ router.post('/', async (req, res) => {
         request.input('type', sql.VarChar, type);
         request.input('date', sql.DateTime, date);
         request.input('notes', sql.Text, notes);
-
+        
         const result = await request.query(query);
         res.status(201).json({ msg: 'Hatırlatıcı başarıyla eklendi' });
     } catch (err) {
         console.error('Hatırlatıcı eklenirken hata oluştu:', err.message);
-        res.status(500).send('Server Error');
+        res.status(500).send('Sunucu Hatası');
     }
 });
 
@@ -49,7 +49,7 @@ router.get('/:id', async (req, res) => {
         res.json(result.recordset[0]);
     } catch (err) {
         console.error('Hatırlatıcı bilgisi alınırken hata oluştu:', err.message);
-        res.status(500).send('Server Error');
+        res.status(500).send('Sunucu Hatası');
     }
 });
 
@@ -73,7 +73,7 @@ router.put('/:id', async (req, res) => {
         res.json({ msg: 'Hatırlatıcı güncellendi' });
     } catch (err) {
         console.error('Hatırlatıcı güncellenirken hata oluştu:', err.message);
-        res.status(500).send('Server Error');
+        res.status(500).send('Sunucu Hatası');
     }
 });
 
@@ -92,7 +92,7 @@ router.delete('/:id', async (req, res) => {
         res.json({ msg: 'Hatırlatıcı silindi' });
     } catch (err) {
         console.error('Hatırlatıcı silinirken hata oluştu:', err.message);
-        res.status(500).send('Server Error');
+        res.status(500).send('Sunucu Hatası');
     }
 });
 

@@ -1,12 +1,12 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api'; // Sunucu adresiniz
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
-// Her istekte, localStorage'dan token'ı alıp Authorization başlığına ekle (Bearer token)
+// Her istekte, localStorage'dan token'ı alıp Authorization başlığına ekle
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -41,7 +41,7 @@ export const createMedicalRecord = (medicalRecordData) => api.post('/medical-rec
 export const updateMedicalRecord = (id, medicalRecordData) => api.put(`/medical-records/${id}`, medicalRecordData);
 export const deleteMedicalRecord = (id) => api.delete(`/medical-records/${id}`);
 
-// Kullanıcılar
+// Kullanıcılar 
 export const getUsers = () => api.get('/users');
 export const getUserById = (id) => api.get(`/users/${id}`);
 export const createUser = (userData) => api.post('/users', userData);
@@ -54,6 +54,11 @@ export const createReminder = (reminderData) => api.post('/reminders', reminderD
 export const updateReminder = (id, reminderData) => api.put(`/reminders/${id}`, reminderData);
 export const deleteReminder = (id) => api.delete(`/reminders/${id}`);
 
+// Raporlar
+export const getAppointmentReport = (filters) => api.get('/reports/appointments', { params: filters });
+export const getPetReport = (filters) => api.get('/reports/pets', { params: filters });
+export const getUserReport = (filters) => api.get('/reports/users', { params: filters });
+
 // Kimlik Doğrulama
 export const loginUser = (credentials) => api.post('/auth/login', credentials);
 export const registerUser = async (userData) => {
@@ -61,7 +66,7 @@ export const registerUser = async (userData) => {
     const response = await api.post('/auth/register', userData);
     return response.data; // Sadece token bilgisini döndür
   } catch (error) {
-    throw error;
+    throw error; // Hatayı fırlat
   }
 };
 

@@ -33,6 +33,12 @@ const AdminManagement = () => {
           >
             Tıbbi Kayıtları Yönet
           </Link>
+          <Link
+            to="/admin/reports"
+            className="bg-gray-700 hover:bg-gray-600 text-gray-100 p-4 rounded-md block text-center"
+          >
+            Raporlar
+          </Link>
         </div>
       </div>
     </div>

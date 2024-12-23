@@ -5,7 +5,7 @@ const config = {
     user:"hayvan",
     password:"1234",
     server:"localhost\\SQLEXPRESS",
-    database:"EvcilHayvanBakimi",
+    database:"ef",
     options: {
         encrypt: true,
         trustServerCertificate: true,

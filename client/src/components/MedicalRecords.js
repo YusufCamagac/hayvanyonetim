@@ -10,7 +10,7 @@ const MedicalRecords = () => {
   });
   const [pets, setPets] = useState([]);
   const [message, setMessage] = useState('');
-  const [isLoading, setIsLoading]= useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -196,24 +196,25 @@ const MedicalRecords = () => {
         </form>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {medicalRecords.map((record) => (
-            <div
-              key={record.id}
-              className="p-4 border rounded-lg shadow-md bg-card-bg"
-            >
-              <p className="font-semibold text-gray-100">
-                Evcil Hayvan:{' '}
-                {pets.find((pet) => pet.id === record.petId)?.name ||
-                  'Bilinmiyor'}
-              </p>
-              <p className="text-gray-100">
-                Tarih: {new Date(record.recordDate).toLocaleDateString()}
-              </p>
-              <p className="text-gray-100">
-                Açıklama: {record.description}
-              </p>
-            </div>
-          ))}
+          {medicalRecords.map((record) => {
+            const pet = pets.find((p) => p.id === record.petId);
+            return (
+              <div
+                key={record.id}
+                className="p-4 border rounded-lg shadow-md bg-card-bg"
+              >
+                <p className="font-semibold text-gray-100">
+                  Evcil Hayvan: {pet ? pet.name : 'Bilinmiyor'}
+                </p>
+                <p className="text-gray-100">
+                  Tarih: {new Date(record.recordDate).toLocaleDateString()}
+                </p>
+                <p className="text-gray-100">
+                  Açıklama: {record.description}
+                </p>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
