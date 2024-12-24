@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const sql = require('mssql'); // mssql paketini import et
-const config = require('../config/database'); // config dosyasını import et
-const authenticateToken = require('../middleware/authMiddleware');
+import sql from 'mssql';
+import config from '../config/database.js';
+import authenticateToken from '../middleware/authMiddleware.js';
 
 // Randevu Raporu (GET /api/reports/appointments) - Sadece admin
 router.get('/appointments', authenticateToken, async (req, res) => {
@@ -13,10 +13,10 @@ router.get('/appointments', authenticateToken, async (req, res) => {
   const { startDate, endDate, provider, petType } = req.query;
 
   try {
+    const request = new sql.Request();
     let query = `SELECT a.date, a.provider, a.reason, p.name AS petName, p.species AS petSpecies
                  FROM Appointments a
                  JOIN Pets p ON a.petId = p.id`;
-    const request = new sql.Request();
     let hasWhereClause = false;
 
     if (startDate && endDate) {
@@ -57,8 +57,8 @@ router.get('/pets', authenticateToken, async (req, res) => {
   const { species, gender, minAge, maxAge } = req.query;
 
   try {
-    let query = `SELECT * FROM Pets`;
     const request = new sql.Request();
+    let query = `SELECT * FROM Pets`;
     let hasWhereClause = false;
 
     if (species) {
@@ -104,8 +104,8 @@ router.get('/users', authenticateToken, async (req, res) => {
   const { startDate, endDate, role } = req.query;
 
   try {
-    let query = `SELECT id, username, email, role, createdAt FROM Users`; // Şifre bilgisini çekmeyin!
     const request = new sql.Request();
+    let query = `SELECT id, username, email, role, createdAt FROM Users`; // Şifre bilgisini çekmeyin!
     let hasWhereClause = false;
 
     if (startDate && endDate) {
@@ -129,4 +129,4 @@ router.get('/users', authenticateToken, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

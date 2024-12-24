@@ -1,10 +1,12 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const sql = require('mssql');
-const config = require('../config/database');
-require('dotenv').config({ path: '../.env' });
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import sql from 'mssql';
+import config from '../config/database.js';
+import dotenv from 'dotenv';
+
+dotenv.config({ path: '../.env' });
 
 // Kullanıcı Kaydı (POST /api/auth/register)
 router.post("/register", async (req, res) => {
@@ -52,15 +54,15 @@ router.post("/register", async (req, res) => {
       { expiresIn: "1h" },
       (err, token) => {
         if (err) {
-          console.error('JWT oluşturma hatası:', err);
+          console.error('JWT oluşturma hatası (kayıt):', err);
           return res.status(500).send("Kayıt sırasında bir hata oluştu (JWT oluşturulamadı).");
         }
         // Token'ın string olduğunu kontrol et
         if (typeof token !== 'string') {
-          console.error('Hata: JWT string formatında değil.');
+          console.error('Hata: JWT string formatında değil (kayıt).');
           return res.status(500).send("Kayıt sırasında bir hata oluştu (Geçersiz token türü).");
         }
-        console.log("Oluşturulan JWT:", token);
+        console.log("Oluşturulan JWT (kayıt):", token);
         res.status(201).json({ token });
       }
     );
@@ -107,15 +109,15 @@ router.post("/login", async (req, res) => {
       { expiresIn: "1h" },
       (err, token) => {
         if (err) {
-          console.error('JWT oluşturma hatası:', err);
+          console.error('JWT oluşturma hatası (giriş):', err);
           return res.status(500).send("Giriş sırasında bir hata oluştu (JWT oluşturulamadı).");
         }
         // Token'ın string olduğunu kontrol et
         if (typeof token !== 'string') {
-          console.error('Hata: JWT string formatında değil.');
+          console.error('Hata: JWT string formatında değil (giriş).');
           return res.status(500).send("Giriş sırasında bir hata oluştu (Geçersiz token türü).");
         }
-        console.log("Oluşturulan JWT:", token);
+        console.log("Oluşturulan JWT (giriş):", token);
         res.json({ token });
       }
     );
@@ -125,4 +127,4 @@ router.post("/login", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

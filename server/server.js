@@ -1,31 +1,31 @@
-require('dotenv').config(); // .env dosyasını yükle (sadece server klasöründe .env dosyası var)
-const express = require('express');
-const cors = require('cors');
-const sql = require('mssql'); // mssql paketini import et
-const config = require('./config/database'); // database.js dosyasını import et
+import 'dotenv/config'; // ES modülü olarak dotenv yükle
+import express from 'express';
+import cors from 'cors';
+import sql from 'mssql';
+import config from './config/database.js';
 
-// Rotalar (routes)
-const petRoutes = require('./routes/pets');
-const appointmentRoutes = require('./routes/appointments');
-const medicalRecordRoutes = require('./routes/medicalRecords');
-const userRoutes = require('./routes/users');
-const reminderRoutes = require('./routes/reminders');
-const authRoutes = require('./routes/auth');
-const reportRoutes = require('./routes/reports');
+// Rotalar
+import petRoutes from './routes/pets.js';
+import appointmentRoutes from './routes/appointments.js';
+import medicalRecordRoutes from './routes/medicalRecords.js';
+import userRoutes from './routes/users.js';
+import reminderRoutes from './routes/reminders.js';
+import authRoutes from './routes/auth.js';
+import reportRoutes from './routes/reports.js';
 
 const app = express();
 
 // Middleware
-const authenticateToken = require('./middleware/authMiddleware');
+import authenticateToken from './middleware/authMiddleware.js';
 
-// Veritabanına Bağlan
+// Veritabanı Bağlantısı
 async function connectToDatabase() {
   try {
-    await sql.connect(config); // database.js dosyasındaki config'i kullanarak bağlan
+    await sql.connect(config);
     console.log('Veritabanına bağlandı...');
   } catch (err) {
     console.error('Veritabanına bağlanılamadı:', err);
-    process.exit(1); // Uygulamayı durdur, çünkü veritabanı bağlantısı olmadan çalışamaz
+    process.exit(1); // Uygulamayı durdur
   }
 }
 

@@ -1,13 +1,34 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const sql = require('mssql');
-const config = require('../config/database');
-const authenticateToken = require('../middleware/authMiddleware');
-const Joi = require('joi');
+import sql from 'mssql';
+import config from '../config/database.js';
+import authenticateToken from '../middleware/authMiddleware.js';
+import Joi from 'joi';
 
-// ... (diğer endpoint'ler)
+// Tüm evcil hayvanları getir (GET /api/pets)
+// Artık yetkilendirme kontrolü var, adminse hepsi, kullanıcı ise sadece kendi hayvanları
+router.get('/', authenticateToken, async (req, res) => {
+    try {
+        const request = new sql.Request();
+        let query = "";
 
-// Yeni bir evcil hayvan oluştur (POST /api/pets) - Artık herkes ekleyebilmeli
+        if (req.user.role === 'admin') {
+            query = "SELECT * FROM Pets";
+        } else {
+            query = "SELECT * FROM Pets WHERE ownerId = @ownerId";
+            request.input('ownerId', sql.Int, req.user.id);
+        }
+
+        const result = await request.query(query);
+        res.json(result.recordset);
+    } catch (err) {
+        console.error('Evcil hayvanları alma hatası:', err.message);
+        res.status(500).send('Evcil hayvanları alınırken bir hata oluştu.');
+    }
+});
+
+// Yeni bir evcil hayvan oluştur (POST /api/pets)
+// Artık yetkilendirme kontrolü yok, herkes ekleyebilmeli
 router.post('/', authenticateToken, async (req, res) => {
     // Joi ile doğrulama şeması (değişiklik yok)
     const schema = Joi.object({
@@ -30,14 +51,17 @@ router.post('/', authenticateToken, async (req, res) => {
     const { name, species, breed, age, gender, medicalHistory } = value;
     try {
         const request = new sql.Request()
+            .input('ownerId', sql.Int, req.user.id) // ownerId eklendi
             .input('name', sql.VarChar, name)
             .input('species', sql.VarChar, species)
             .input('breed', sql.VarChar, breed)
             .input('age', sql.Int, age)
             .input('gender', sql.VarChar, gender)
-            .input('medicalHistory', sql.VarChar, medicalHistory)
-            .query("INSERT INTO Pets (name, species, breed, age, gender, medicalHistory) VALUES (@name, @species, @breed, @age, @gender, @medicalHistory)");
+            .input('medicalHistory', sql.VarChar, medicalHistory);
 
+        const query = `INSERT INTO Pets (ownerId, name, species, breed, age, gender, medicalHistory) VALUES (@ownerId, @name, @species, @breed, @age, @gender, @medicalHistory)`;
+
+        const result = await request.query(query);
         res.status(201).json({ msg: 'Evcil hayvan başarıyla eklendi' });
     } catch (err) {
         console.error('Evcil hayvan ekleme hatası:', err.message);
@@ -45,7 +69,7 @@ router.post('/', authenticateToken, async (req, res) => {
     }
 });
 
-// Belirli bir evcil hayvanı getir (GET /api/pets/:id)
+// Belirli bir evcil hayvanı getir (GET /api/pets/:id) - Değişiklik yok
 router.get('/:id', async (req, res) => {
     const { id } = req.params;
     try {
@@ -64,26 +88,43 @@ router.get('/:id', async (req, res) => {
 });
 
 // Evcil hayvanı güncelle (PUT /api/pets/:id)
+// Sadece admin veya ilgili evcil hayvanın sahibi güncelleyebilmeli
 router.put('/:id', authenticateToken, async (req, res) => {
-    // Sadece admin rolüne sahip kullanıcılar güncelleyebilsin
-    if (req.user.role !== 'admin') {
-        return res.status(403).json({ msg: 'Bu işlemi yapmak için yetkiniz yok.' });
-    }
     const { id } = req.params;
     const { name, species, breed, age, gender, medicalHistory } = req.body;
     try {
         const request = new sql.Request()
-            .input('id', sql.Int, id)
+            .input('id', sql.Int, id);
+
+        // Kullanıcının yetkisini kontrol et
+        let authQuery = 'SELECT ownerId FROM Pets WHERE id = @id';
+        const authResult = await request.query(authQuery);
+
+        if (authResult.recordset.length === 0) {
+            return res.status(404).json({ msg: 'Evcil hayvan bulunamadı' });
+        }
+
+        const ownerId = authResult.recordset[0].ownerId;
+
+        if (req.user.role !== 'admin' && req.user.id !== ownerId) {
+            return res.status(403).json({ msg: 'Bu işlemi yapmak için yetkiniz yok.' });
+        }
+
+        // Güncelleme işlemini yap
+        const updateQuery = `UPDATE Pets SET name = @name, species = @species, breed = @breed, age = @age, gender = @gender, medicalHistory = @medicalHistory WHERE id = @id`;
+        const updateResult = await request
             .input('name', sql.VarChar, name)
             .input('species', sql.VarChar, species)
             .input('breed', sql.VarChar, breed)
             .input('age', sql.Int, age)
             .input('gender', sql.VarChar, gender)
             .input('medicalHistory', sql.VarChar, medicalHistory)
-            .query("UPDATE Pets SET name = @name, species = @species, breed = @breed, age = @age, gender = @gender, medicalHistory = @medicalHistory WHERE id = @id");
-        if (result.rowsAffected[0] === 0) {
+            .query(updateQuery);
+
+        if (updateResult.rowsAffected[0] === 0) {
             return res.status(404).json({ msg: 'Evcil hayvan bulunamadı' });
         }
+
         res.json({ msg: 'Evcil hayvan güncellendi' });
     } catch (err) {
         console.error('Evcil hayvan güncelleme hatası:', err.message);
@@ -92,26 +133,35 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // Evcil hayvanı sil (DELETE /api/pets/:id)
+// Sadece admin veya ilgili evcil hayvanın sahibi silebilsin
 router.delete('/:id', authenticateToken, async (req, res) => {
-    // Sadece admin rolüne sahip kullanıcılar silebilsin
-    if (req.user.role !== 'admin') {
-        return res.status(403).json({ msg: 'Bu işlemi yapmak için yetkiniz yok.' });
-    }
     const { id } = req.params;
     try {
-        // Önce varsa ilgili randevuları, hatırlatıcıları ve tıbbi kayıtları sil
-        await sql.query`DELETE FROM Appointments WHERE petId = ${id}`;
-        await sql.query`DELETE FROM MedicalRecords WHERE petId = ${id}`;
-        await sql.query`DELETE FROM Reminders WHERE petId = ${id}`;
-        await sql.query`DELETE FROM Medications WHERE petId = ${id}`;
+        const request = new sql.Request()
+            .input('id', sql.Int, id);
 
-        const result = await new sql.Request()
-            .input('id', sql.Int, id)
-            .query("DELETE FROM Pets WHERE id = @id");
+        // Kullanıcının yetkisini kontrol et
+        let authQuery = 'SELECT ownerId FROM Pets WHERE id = @id';
+        const authResult = await request.query(authQuery);
 
-        if (result.rowsAffected[0] === 0) {
+        if (authResult.recordset.length === 0) {
             return res.status(404).json({ msg: 'Evcil hayvan bulunamadı' });
         }
+
+        const ownerId = authResult.recordset[0].ownerId;
+
+        if (req.user.role !== 'admin' && req.user.id !== ownerId) {
+            return res.status(403).json({ msg: 'Bu işlemi yapmak için yetkiniz yok.' });
+        }
+
+        // Silme işlemini yap
+        const deleteQuery = `DELETE FROM Pets WHERE id = @id`;
+        const deleteResult = await request.query(deleteQuery);
+
+        if (deleteResult.rowsAffected[0] === 0) {
+            return res.status(404).json({ msg: 'Evcil hayvan bulunamadı' });
+        }
+
         res.json({ msg: 'Evcil hayvan silindi' });
     } catch (err) {
         console.error('Evcil hayvan silinirken hata oluştu:', err.message);
@@ -119,13 +169,30 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     }
 });
 
-// Belirli bir evcil hayvana ait ilaç ve aşıları getir (GET /api/pets/:petId/medications)
+// Belirli bir evcil hayvana ait ilaç ve aşıları getir (GET /api/pets/:petId/medications) - Yetkilendirme eklendi
 router.get('/:petId/medications', authenticateToken, async (req, res) => {
     const { petId } = req.params;
     try {
-        const result = await new sql.Request()
-            .input('petId', sql.Int, petId)
-            .query("SELECT * FROM Medications WHERE petId = @petId");
+        const request = new sql.Request()
+            .input('petId', sql.Int, petId);
+
+        // Kullanıcının yetkisini kontrol et
+        let authQuery = 'SELECT ownerId FROM Pets WHERE id = @petId';
+        const authResult = await request.query(authQuery);
+
+        if (authResult.recordset.length === 0) {
+            return res.status(404).json({ msg: 'Evcil hayvan bulunamadı' });
+        }
+
+        const ownerId = authResult.recordset[0].ownerId;
+
+        if (req.user.role !== 'admin' && req.user.id !== ownerId) {
+            return res.status(403).json({ msg: 'Bu işlemi yapmak için yetkiniz yok.' });
+        }
+
+        // İlaç ve aşıları getir
+        const query = `SELECT * FROM Medications WHERE petId = @petId`;
+        const result = await request.query(query);
 
         res.json(result.recordset);
     } catch (err) {
@@ -134,21 +201,39 @@ router.get('/:petId/medications', authenticateToken, async (req, res) => {
     }
 });
 
-// Yeni bir ilaç/aşı kaydı oluştur (POST /api/pets/:petId/medications)
+// Yeni bir ilaç/aşı kaydı oluştur (POST /api/pets/:petId/medications) - Yetkilendirme eklendi
 router.post('/:petId/medications', authenticateToken, async (req, res) => {
     const { petId } = req.params;
     const { name, startDate, endDate, dosage, frequency, notes } = req.body;
     try {
-        const request = new sql.Request();
+        const request = new sql.Request()
+            .input('petId', sql.Int, petId);
+
+        // Kullanıcının yetkisini kontrol et
+        let authQuery = 'SELECT ownerId FROM Pets WHERE id = @petId';
+        const authResult = await request.query(authQuery);
+
+        if (authResult.recordset.length === 0) {
+            return res.status(404).json({ msg: 'Evcil hayvan bulunamadı' });
+        }
+
+        const ownerId = authResult.recordset[0].ownerId;
+
+        if (req.user.role !== 'admin' && req.user.id !== ownerId) {
+            return res.status(403).json({ msg: 'Bu işlemi yapmak için yetkiniz yok.' });
+        }
+
+        // İlaç/aşı kaydını oluştur
+        const query = `INSERT INTO Medications (petId, name, startDate, endDate, dosage, frequency, notes) VALUES (@petId, @name, @startDate, @endDate, @dosage, @frequency, @notes)`;
         const result = await request
-            .input('petId', sql.Int, petId)
             .input('name', sql.VarChar, name)
             .input('startDate', sql.Date, startDate)
             .input('endDate', sql.Date, endDate)
             .input('dosage', sql.VarChar, dosage)
             .input('frequency', sql.VarChar, frequency)
             .input('notes', sql.VarChar, notes)
-            .query("INSERT INTO Medications (petId, name, startDate, endDate, dosage, frequency, notes) VALUES (@petId, @name, @startDate, @endDate, @dosage, @frequency, @notes)");
+            .query(query);
+
         res.status(201).json({ msg: 'İlaç/aşı kaydı başarıyla eklendi' });
     } catch (err) {
         console.error('İlaç/aşı kaydı eklenirken hata oluştu:', err.message);
@@ -156,24 +241,44 @@ router.post('/:petId/medications', authenticateToken, async (req, res) => {
     }
 });
 
-// Belirli bir ilacı/aşıyı güncelle (PUT /api/pets/:petId/medications/:id)
+// Belirli bir ilacı/aşıyı güncelle (PUT /api/pets/:petId/medications/:id) - Yetkilendirme eklendi
 router.put('/:petId/medications/:id', authenticateToken, async (req, res) => {
     const { petId, id } = req.params;
     const { name, startDate, endDate, dosage, frequency, notes } = req.body;
     try {
         const request = new sql.Request()
             .input('id', sql.Int, id)
-            .input('petId', sql.Int, petId)
+            .input('petId', sql.Int, petId);
+
+        // Kullanıcının yetkisini kontrol et
+        let authQuery = 'SELECT ownerId FROM Pets WHERE id = @petId';
+        const authResult = await request.query(authQuery);
+
+        if (authResult.recordset.length === 0) {
+            return res.status(404).json({ msg: 'Evcil hayvan bulunamadı' });
+        }
+
+        const ownerId = authResult.recordset[0].ownerId;
+
+        if (req.user.role !== 'admin' && req.user.id !== ownerId) {
+            return res.status(403).json({ msg: 'Bu işlemi yapmak için yetkiniz yok.' });
+        }
+
+        // İlaç/aşı kaydını güncelle
+        const query = `UPDATE Medications SET name = @name, startDate = @startDate, endDate = @endDate, dosage = @dosage, frequency = @frequency, notes = @notes WHERE id = @id AND petId = @petId`;
+        const result = await request
             .input('name', sql.VarChar, name)
             .input('startDate', sql.Date, startDate)
             .input('endDate', sql.Date, endDate)
             .input('dosage', sql.VarChar, dosage)
             .input('frequency', sql.VarChar, frequency)
             .input('notes', sql.VarChar, notes)
-            .query("UPDATE Medications SET name = @name, startDate = @startDate, endDate = @endDate, dosage = @dosage, frequency = @frequency, notes = @notes WHERE id = @id AND petId = @petId");
+            .query(query);
+
         if (result.rowsAffected[0] === 0) {
             return res.status(404).json({ msg: 'İlaç/aşı kaydı bulunamadı' });
         }
+
         res.json({ msg: 'İlaç/aşı kaydı güncellendi' });
     } catch (err) {
         console.error('İlaç/aşı kaydı güncellenirken hata oluştu:', err.message);
@@ -181,17 +286,36 @@ router.put('/:petId/medications/:id', authenticateToken, async (req, res) => {
     }
 });
 
-// Belirli bir ilacı/aşıyı sil (DELETE /api/pets/:petId/medications/:id)
+// Belirli bir ilacı/aşıyı sil (DELETE /api/pets/:petId/medications/:id) - Yetkilendirme eklendi
 router.delete('/:petId/medications/:id', authenticateToken, async (req, res) => {
     const { petId, id } = req.params;
     try {
         const request = new sql.Request()
             .input('id', sql.Int, id)
-            .input('petId', sql.Int, petId)
-            .query("DELETE FROM Medications WHERE id = @id AND petId = @petId");
+            .input('petId', sql.Int, petId);
+
+        // Kullanıcının yetkisini kontrol et
+        let authQuery = 'SELECT ownerId FROM Pets WHERE id = @petId';
+        const authResult = await request.query(authQuery);
+
+        if (authResult.recordset.length === 0) {
+            return res.status(404).json({ msg: 'Evcil hayvan bulunamadı' });
+        }
+
+        const ownerId = authResult.recordset[0].ownerId;
+
+        if (req.user.role !== 'admin' && req.user.id !== ownerId) {
+            return res.status(403).json({ msg: 'Bu işlemi yapmak için yetkiniz yok.' });
+        }
+
+        // İlaç/aşı kaydını sil
+        const query = `DELETE FROM Medications WHERE id = @id AND petId = @petId`;
+        const result = await request.query(query);
+
         if (result.rowsAffected[0] === 0) {
             return res.status(404).json({ msg: 'İlaç/aşı kaydı bulunamadı' });
         }
+
         res.json({ msg: 'İlaç/aşı kaydı silindi' });
     } catch (err) {
         console.error('İlaç/aşı kaydı silinirken hata oluştu:', err.message);
@@ -199,4 +323,4 @@ router.delete('/:petId/medications/:id', authenticateToken, async (req, res) => 
     }
 });
 
-module.exports = router;
+export default router;

@@ -1,11 +1,10 @@
-
-const sql = require('mssql');
+import sql from 'mssql';
 
 const config = {
-    user:"hayvan",
-    password:"1234",
-    server:"localhost\\SQLEXPRESS",
-    database:"ef",
+    user: "hayvan",
+    password: "1234",
+    server: "localhost\\SQLEXPRESS",
+    database: "ef",
     options: {
         encrypt: true,
         trustServerCertificate: true,
@@ -14,4 +13,4 @@ const config = {
     port: 1433
 };
 
-module.exports = config;
+export default config; // ES modülü olarak export et

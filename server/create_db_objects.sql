@@ -7,7 +7,7 @@ END;
 
 USE ef;
 
--- User tablosu oluşturma
+-- User tablosu oluşturma (değişiklik yok)
 IF OBJECT_ID(N'Users', N'U') IS NULL
 BEGIN
     CREATE TABLE Users (
@@ -25,7 +25,7 @@ BEGIN
     PRINT 'Users tablosu zaten var.';
 END;
 
--- Pets Tablosu
+-- Pets Tablosu (ownerId eklendi)
 IF OBJECT_ID(N'Pets', N'U') IS NULL
 BEGIN
     CREATE TABLE Pets (
@@ -43,10 +43,24 @@ BEGIN
 END
 ELSE
 BEGIN
-    PRINT 'Pets tablosu zaten var.';
+    -- Eğer Pets tablosu varsa ama ownerId yoksa, ownerId sütununu ekle
+    IF NOT EXISTS(SELECT 1 FROM sys.columns WHERE Name = N'ownerId' AND Object_ID = Object_ID(N'Pets'))
+    BEGIN
+        ALTER TABLE Pets
+        ADD ownerId INT;
+        PRINT 'Pets tablosuna ownerId sütunu eklendi.';
+        -- ownerId için foreign key ekle
+        ALTER TABLE Pets
+        ADD CONSTRAINT FK_Pets_Users FOREIGN KEY (ownerId) REFERENCES Users(id) ON DELETE SET NULL;
+        PRINT 'Pets tablosuna ownerId için foreign key eklendi.';
+    END
+    ELSE
+    BEGIN
+        PRINT 'Pets tablosunda ownerId sütunu zaten var.';
+    END
 END;
 
--- Appointments Tablosu
+-- Appointments Tablosu (değişiklik yok)
 IF OBJECT_ID(N'Appointments', N'U') IS NULL
 BEGIN
     CREATE TABLE Appointments (
@@ -64,7 +78,7 @@ BEGIN
     PRINT 'Appointments tablosu zaten var.';
 END;
 
--- MedicalRecords Tablosu
+-- MedicalRecords Tablosu (değişiklik yok)
 IF OBJECT_ID(N'MedicalRecords', N'U') IS NULL
 BEGIN
     CREATE TABLE MedicalRecords (
@@ -81,7 +95,7 @@ BEGIN
     PRINT 'MedicalRecords tablosu zaten var.';
 END;
 
--- Reminders Tablosu
+-- Reminders Tablosu (değişiklik yok)
 IF OBJECT_ID(N'Reminders', N'U') IS NULL
 BEGIN
     CREATE TABLE Reminders (
@@ -99,7 +113,7 @@ BEGIN
     PRINT 'Reminders tablosu zaten var.';
 END;
 
--- Medications Tablosu
+-- Medications Tablosu (değişiklik yok)
 IF OBJECT_ID(N'Medications', N'U') IS NULL
 BEGIN
     CREATE TABLE Medications (
@@ -120,7 +134,7 @@ BEGIN
     PRINT 'Medications tablosu zaten var.';
 END;
 
--- Fonksiyon oluşturma (ortalama yaş hesabı için) - Daha basit hali
+-- Fonksiyon oluşturma (ortalama yaş hesabı için) - Değişiklik yok
 IF OBJECT_ID(N'calculate_average_pet_age', N'FN') IS NOT NULL
     DROP FUNCTION calculate_average_pet_age;
 GO
@@ -134,7 +148,7 @@ GO
 
 PRINT 'calculate_average_pet_age fonksiyonu oluşturuldu.';
 
--- Stored Procedure oluşturma (kullanıcı ve ilişkili verilerini silmek için) - ON DELETE CASCADE ile daha basit
+-- Stored Procedure oluşturma (kullanıcı ve ilişkili verilerini silmek için) - Güncellendi
 IF OBJECT_ID (N'sp_DeleteUser', N'P') IS NOT NULL
     DROP PROCEDURE sp_DeleteUser;
 GO
@@ -149,7 +163,7 @@ GO
 
 PRINT 'sp_DeleteUser stored procedure oluşturuldu.';
 
--- View oluşturma (randevu ve ilgili evcil hayvan bilgileri için)
+-- View oluşturma (randevu ve ilgili evcil hayvan bilgileri için) - Değişiklik yok
 CREATE OR ALTER VIEW vw_AppointmentsWithPets AS
 SELECT a.id AS AppointmentId, a.date AS AppointmentDate, a.provider, a.reason,
        p.id AS PetId, p.name AS PetName, p.species, p.breed
@@ -159,7 +173,7 @@ GO
 
 PRINT 'vw_AppointmentsWithPets view oluşturuldu.';
 
--- Index oluşturma
+-- Index oluşturma (değişiklik yok)
 CREATE INDEX IX_Pets_Name ON Pets (name);
 CREATE INDEX IX_Pets_Species ON Pets (species);
 CREATE INDEX IX_Appointments_Date ON Appointments (date); -- Randevular tarihe göre sık sorgulanıyorsa
@@ -174,4 +188,3 @@ PRINT 'Indexler oluşturuldu.';
 -- ('admin', 'HASHED_PASSWORD', 'admin@example.com', 'admin');
 
 -- PRINT 'Örnek admin kullanıcısı eklendi.';
--- GO

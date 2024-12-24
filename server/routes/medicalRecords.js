@@ -1,13 +1,21 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const sql = require('mssql'); // mssql paketini import et
-const config = require('../config/database'); // config dosyasını import et
-const authenticateToken = require('../middleware/authMiddleware');
+import sql from 'mssql';
+import config from '../config/database.js';
+import authenticateToken from '../middleware/authMiddleware.js';
 
 // Tüm tıbbi kayıtları getir (GET /api/medical-records)
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    const result = await new sql.Request().query("SELECT mr.*, p.name AS petName FROM MedicalRecords mr JOIN Pets p ON mr.petId = p.id");
+    const request = new sql.Request();
+    let query = "";
+    if (req.user.role === 'admin') {
+        query = `SELECT mr.*, p.name AS petName, p.ownerId AS ownerId FROM MedicalRecords mr JOIN Pets p ON mr.petId = p.id`;
+    } else {
+        query = `SELECT mr.*, p.name AS petName, p.ownerId AS ownerId FROM MedicalRecords mr JOIN Pets p ON mr.petId = p.id WHERE p.ownerId = @ownerId`;
+        request.input('ownerId', sql.Int, req.user.id);
+    }
+    const result = await request.query(query);
     res.json(result.recordset);
   } catch (err) {
     console.error('Tıbbi kayıtlar alınırken hata oluştu:', err.message);
@@ -20,11 +28,30 @@ router.post('/', authenticateToken, async (req, res) => {
   const { petId, recordDate, description } = req.body;
   try {
     const request = new sql.Request();
-    const result = await request
+
+    // Kullanıcının yetkisini kontrol et
+    let authQuery = 'SELECT ownerId FROM Pets WHERE id = @petId';
+    const authResult = await request
       .input('petId', sql.Int, petId)
+      .query(authQuery);
+
+    if (authResult.recordset.length === 0) {
+      return res.status(404).json({ msg: 'Evcil hayvan bulunamadı' });
+    }
+
+    const ownerId = authResult.recordset[0].ownerId;
+
+    if (req.user.role !== 'admin' && req.user.id !== ownerId) {
+      return res.status(403).json({ msg: 'Bu işlemi yapmak için yetkiniz yok.' });
+    }
+
+    // Tıbbi kaydı oluştur
+    const insertQuery = `INSERT INTO MedicalRecords (petId, recordDate, description) VALUES (@petId, @recordDate, @description)`;
+    const insertResult = await request
       .input('recordDate', sql.DateTime, recordDate)
       .input('description', sql.VarChar, description)
-      .query("INSERT INTO MedicalRecords (petId, recordDate, description) VALUES (@petId, @recordDate, @description)");
+      .query(insertQuery);
+
     res.status(201).json({ msg: 'Tıbbi kayıt başarıyla eklendi' });
   } catch (err) {
     console.error('Tıbbi kayıt eklenirken hata oluştu:', err.message);
@@ -36,14 +63,28 @@ router.post('/', authenticateToken, async (req, res) => {
 router.get('/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   try {
-    const result = await new sql.Request()
-      .input('id', sql.Int, id)
-      .query("SELECT * FROM MedicalRecords WHERE id = @id");
+    const request = new sql.Request()
+      .input('id', sql.Int, id);
 
-    if (result.recordset.length === 0) {
+    // Kullanıcının yetkisini kontrol et
+    let authQuery = `SELECT p.ownerId FROM MedicalRecords mr JOIN Pets p ON mr.petId = p.id WHERE mr.id = @id`;
+    const authResult = await request.query(authQuery);
+
+    if (authResult.recordset.length === 0) {
       return res.status(404).json({ msg: 'Tıbbi kayıt bulunamadı' });
     }
-    res.json(result.recordset[0]);
+
+    const ownerId = authResult.recordset[0].ownerId;
+
+    if (req.user.role !== 'admin' && req.user.id !== ownerId) {
+      return res.status(403).json({ msg: 'Bu işlemi yapmak için yetkiniz yok.' });
+    }
+
+    // Tıbbi kaydı getir
+    const getQuery = `SELECT * FROM MedicalRecords WHERE id = @id`;
+    const getResult = await request.query(getQuery);
+
+    res.json(getResult.recordset[0]);
   } catch (err) {
     console.error('Tıbbi kayıt getirilirken hata oluştu:', err.message);
     res.status(500).send('Tıbbi kayıt getirilirken bir hata oluştu.');
@@ -55,16 +96,35 @@ router.put('/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { petId, recordDate, description } = req.body;
   try {
-    const request = new sql.Request();
-    const result = await request
+    const request = new sql.Request()
+      .input('id', sql.Int, id);
+
+    // Kullanıcının yetkisini kontrol et
+    let authQuery = `SELECT p.ownerId FROM MedicalRecords mr JOIN Pets p ON mr.petId = p.id WHERE mr.id = @id`;
+    const authResult = await request.query(authQuery);
+
+    if (authResult.recordset.length === 0) {
+      return res.status(404).json({ msg: 'Tıbbi kayıt bulunamadı' });
+    }
+
+    const ownerId = authResult.recordset[0].ownerId;
+
+    if (req.user.role !== 'admin' && req.user.id !== ownerId) {
+      return res.status(403).json({ msg: 'Bu işlemi yapmak için yetkiniz yok.' });
+    }
+
+    // Tıbbi kaydı güncelle
+    const updateQuery = `UPDATE MedicalRecords SET petId = @petId, recordDate = @recordDate, description = @description WHERE id = @id`;
+    const updateResult = await request
       .input('petId', sql.Int, petId)
       .input('recordDate', sql.DateTime, recordDate)
       .input('description', sql.VarChar, description)
-      .input('id', sql.Int, id)
-      .query("UPDATE MedicalRecords SET petId = @petId, recordDate = @recordDate, description = @description WHERE id = @id");
-    if (result.rowsAffected[0] === 0) {
+      .query(updateQuery);
+
+    if (updateResult.rowsAffected[0] === 0) {
       return res.status(404).json({ msg: 'Tıbbi kayıt bulunamadı' });
     }
+
     res.json({ msg: 'Tıbbi kayıt güncellendi' });
   } catch (err) {
     console.error('Tıbbi kayıt güncellenirken hata oluştu:', err.message);
@@ -76,13 +136,31 @@ router.put('/:id', authenticateToken, async (req, res) => {
 router.delete('/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   try {
-    const result = await new sql.Request()
-      .input('id', sql.Int, id)
-      .query("DELETE FROM MedicalRecords WHERE id = @id");
+    const request = new sql.Request()
+      .input('id', sql.Int, id);
 
-    if (result.rowsAffected[0] === 0) {
+    // Kullanıcının yetkisini kontrol et
+    const authQuery = `SELECT p.ownerId FROM MedicalRecords mr JOIN Pets p ON mr.petId = p.id WHERE mr.id = @id`;
+    const authResult = await request.query(authQuery);
+
+    if (authResult.recordset.length === 0) {
       return res.status(404).json({ msg: 'Tıbbi kayıt bulunamadı' });
     }
+
+    const ownerId = authResult.recordset[0].ownerId;
+
+    if (req.user.role !== 'admin' && req.user.id !== ownerId) {
+      return res.status(403).json({ msg: 'Bu işlemi yapmak için yetkiniz yok.' });
+    }
+
+    // Tıbbi kaydı sil
+    const deleteQuery = `DELETE FROM MedicalRecords WHERE id = @id`;
+    const deleteResult = await request.query(deleteQuery);
+
+    if (deleteResult.rowsAffected[0] === 0) {
+      return res.status(404).json({ msg: 'Tıbbi kayıt bulunamadı' });
+    }
+
     res.json({ msg: 'Tıbbi kayıt silindi' });
   } catch (err) {
     console.error('Tıbbi kayıt silinirken hata oluştu:', err.message);
@@ -90,4 +168,4 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

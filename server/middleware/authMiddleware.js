@@ -1,7 +1,8 @@
-const jwt = require('jsonwebtoken');
-require('dotenv').config({ path: '../.env' });
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+dotenv.config({ path: '../.env' }); // ES modülü olarak .env yükle
 
-module.exports = function (req, res, next) {
+export default function (req, res, next) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -16,8 +17,11 @@ module.exports = function (req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("Doğrulanan JWT:", decoded); // Decode edilen token'ı konsola yazdırın
-    req.user = decoded.user; // Sadece id ve role bilgilerini atayın, decoded.user'ın kendisini değil
+    console.log("Doğrulanan JWT:", decoded); // Decode edilen token'ı konsola yazdır
+    req.user = {
+      id: decoded.user.id,
+      role: decoded.user.role
+    };
     next();
   } catch (err) {
     console.error('Token doğrulama hatası:', err);
