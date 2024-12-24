@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getPets } from '../api'; // api.js'de getPets fonksiyonunu güncellediğimizden emin olun
+import { getPets } from '../api';
 import { jwtDecode } from "jwt-decode";
+import dayjs from 'dayjs';
 
 const ManagePets = () => {
   const [pets, setPets] = useState([]);
@@ -14,8 +15,8 @@ const ManagePets = () => {
       try {
         const decoded = jwtDecode(token);
         const ownerId = decoded.user.id;
-        const response = await getPets(ownerId); // getPets fonksiyonuna ownerId'yi gönder
-        setPets(response.data);
+        const response = await getPets(ownerId);
+        setPets(response);
       } catch (error) {
         console.error('Evcil hayvanlar alınamadı:', error);
         setError('Evcil hayvanlar alınamadı.');
@@ -25,7 +26,7 @@ const ManagePets = () => {
     };
 
     if (token) {
-        fetchPets();
+      fetchPets();
     }
   }, [token]);
 
@@ -36,6 +37,10 @@ const ManagePets = () => {
   if (error) {
     return <div className="text-red-500">Hata: {error}</div>;
   }
+
+  const formatDate = (dateString) => {
+    return dateString ? dayjs(dateString).format('DD.MM.YYYY') : 'Bilgi yok';
+  };
 
   return (
     <div className="bg-background p-4">
@@ -53,6 +58,9 @@ const ManagePets = () => {
                 <p className="text-gray-100">Yaş: {pet.age}</p>
                 <p className="text-gray-100">Cins: {pet.breed}</p>
                 <p className="text-gray-100">Cinsiyet: {pet.gender}</p>
+                <p className="text-gray-100">Son Randevu: {formatDate(pet.lastAppointmentDate)}</p>
+                <p className="text-gray-100">Son Tıbbi Kayıt: {formatDate(pet.lastMedicalRecordDate)}</p>
+                <p className="text-gray-100">Son Hatırlatıcı: {formatDate(pet.lastReminderDate)}</p>
                 <div className="mt-4">
                   <Link to={`/medical-records/${pet.id}`} className="text-blue-400 hover:text-blue-600 mr-2">
                     Tıbbi Kayıtlar

@@ -39,12 +39,19 @@ const handleApiError = (error) => {
 
 // Evcil Hayvanlar
 export const getPets = (ownerId = null) => {
-  // Değişiklik burada: ownerId parametresi eklendi ve sorguya dahil ediliyor
+  let url = '/pets';
+  const config = {};
+
   if (ownerId) {
-    return api.get('/pets', { params: { ownerId: ownerId } }).catch(handleApiError);
-  } else {
-    return api.get('/pets').catch(handleApiError);
+    config.params = { ownerId };
   }
+
+  return api.get(url, config)
+    .then(response => {
+      console.log("getPets response:", response); // Yanıtı konsola yazdır
+      return response.data;
+    })
+    .catch(handleApiError);
 };
 export const getPetById = (id) => api.get(`/pets/${id}`).catch(handleApiError);
 export const createPet = (petData) => api.post('/pets', petData).catch(handleApiError);

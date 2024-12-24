@@ -13,9 +13,22 @@ router.get('/', authenticateToken, async (req, res) => {
         let query = "";
 
         if (req.user.role === 'admin') {
-            query = "SELECT * FROM Pets";
+            query = `
+                SELECT p.*,
+                    (SELECT TOP 1 date FROM Appointments WHERE petId = p.id ORDER BY date DESC) as lastAppointmentDate,
+                    (SELECT TOP 1 recordDate FROM MedicalRecords WHERE petId = p.id ORDER BY recordDate DESC) as lastMedicalRecordDate,
+                    (SELECT TOP 1 date FROM Reminders WHERE petId = p.id ORDER BY date DESC) as lastReminderDate
+                FROM Pets p
+            `;
         } else {
-            query = "SELECT * FROM Pets WHERE ownerId = @ownerId";
+            query = `
+                SELECT p.*,
+                    (SELECT TOP 1 date FROM Appointments WHERE petId = p.id ORDER BY date DESC) as lastAppointmentDate,
+                    (SELECT TOP 1 recordDate FROM MedicalRecords WHERE petId = p.id ORDER BY recordDate DESC) as lastMedicalRecordDate,
+                    (SELECT TOP 1 date FROM Reminders WHERE petId = p.id ORDER BY date DESC) as lastReminderDate
+                FROM Pets p
+                WHERE p.ownerId = @ownerId
+            `;
             request.input('ownerId', sql.Int, req.user.id);
         }
 
@@ -23,7 +36,7 @@ router.get('/', authenticateToken, async (req, res) => {
         res.json(result.recordset);
     } catch (err) {
         console.error('Evcil hayvanları alma hatası:', err.message);
-        res.status(500).send('Evcil hayvanları alınırken bir hata oluştu.');
+        res.status(500).send('Sunucu Hatası');
     }
 });
 
