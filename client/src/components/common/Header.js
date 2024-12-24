@@ -1,41 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
+import defaultAvatar from '../assents/avatar.png';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   const token = localStorage.getItem('token');
-  const [userRole, setUserRole] = useState(null);
+  const [user, setUser] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Kullanıcı rolünü JWT'den çöz ve state'e kaydet
     if (isLoggedIn && token) {
       try {
         const decoded = jwtDecode(token);
-        setUserRole(decoded.user.role);
+        setUser(decoded.user);
       } catch (error) {
         console.error("JWT decode hatası:", error);
-        setUserRole(null);
+        setUser(null);
       }
     } else {
-      setUserRole(null);
+      setUser(null);
     }
   }, [isLoggedIn, token]);
 
   const handleLogout = () => {
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('token');
-    setUserRole(null);
-    // Kullanıcıyı, oturumu kapatmadan önceki sayfaya yönlendir
-    navigate(location.pathname);
+    setUser(null);
+    navigate(location.pathname === '/' ?  '/' : '/');
+    window.location.reload();
+
   };
 
-  const handleMenuClick = (event) => {
-    // Mobil menüde bir linke tıklandığında menünün otomatik olarak kapanmasını sağlar
-    if (window.innerWidth < 640) { // Tailwind'in `sm` breakpoint'i
+  const handleMenuClick = () => {
+    if (window.innerWidth < 640) {
       setIsMenuOpen(false);
     }
   };
@@ -72,108 +72,75 @@ const Header = () => {
           className={`flex flex-col sm:flex-row w-full sm:w-auto ${isMenuOpen ? '' : 'hidden sm:flex'
             } mt-4 sm:mt-0`}
         >
-          <nav className={`px-4 py-2 rounded-lg ${isMenuOpen ? 'w-full bg-menu-bg' : ''
-            }`}>
-            <ul className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 text-lg"
-              onClick={handleMenuClick}>
-              {isLoggedIn && (
-                <>
-                  <li>
-                    <NavLink
-                      to="/pet-registration"
-                      className={({ isActive }) =>
-                        isActive
-                          ? 'text-link'
-                          : 'hover:text-link-hover text-white'
-                      }
-                    >
-                      Evcil Hayvan Kaydı
-                    </NavLink>
-                  </li>
-                  <li>
-                    <NavLink
-                      to="/appointment-scheduling"
-                      className={({ isActive }) =>
-                        isActive
-                          ? 'text-link'
-                          : 'hover:text-link-hover text-white'
-                      }
-                    >
-                      Randevu Al
-                    </NavLink>
-                  </li>
-                  <li>
-                    <NavLink
-                      to="/medical-records"
-                      className={({ isActive }) =>
-                        isActive
-                          ? 'text-link'
-                          : 'hover:text-link-hover text-white'
-                      }
-                    >
-                      Tıbbi Kayıtlar
-                    </NavLink>
-                  </li>
-                  <li>
-                    <NavLink
-                      to="/reminders"
-                      className={({ isActive }) =>
-                        isActive
-                          ? 'text-link'
-                          : 'hover:text-link-hover text-white'
-                      }
-                    >
-                      Hatırlatıcılar
-                    </NavLink>
-                  </li>
-                </>
+          <nav className={`px-4 py-2 rounded-lg ${isMenuOpen ? 'w-full bg-menu-bg' : ''}`}>
+            <ul className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 text-lg" onClick={handleMenuClick}>
+              {/* Diğer menü öğeleri */}
+              <li>
+                <NavLink to="/pet-registration" className={({ isActive }) => isActive ? 'text-link' : 'hover:text-link-hover text-white'}>
+                  Evcil Hayvan Kaydı
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/appointment-scheduling" className={({ isActive }) => isActive ? 'text-link' : 'hover:text-link-hover text-white'}>
+                  Randevu Al
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/medical-records" className={({ isActive }) => isActive ? 'text-link' : 'hover:text-link-hover text-white'}>
+                  Tıbbi Kayıtlar
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/reminders" className={({ isActive }) => isActive ? 'text-link' : 'hover:text-link-hover text-white'}>
+                  Hatırlatıcılar
+                </NavLink>
+              </li>
+              {/* Kullanıcı menüsü */}
+              {isLoggedIn && user ? (
+                <li className="relative group">
+                  <div className="flex items-center cursor-pointer">
+                    {user.avatar ? (
+                      <img src={user.avatar} alt="User Avatar" className="w-8 h-8 rounded-full" />
+                    ) : (
+                      <img src={defaultAvatar} alt="Default Avatar" className="w-8 h-8 rounded-full" />
+                    )}
+                    <span className="ml-2 text-white">{user.username}</span>
+                  </div>
+                  <ul className="absolute hidden group-hover:block bg-menu-bg text-white p-2 rounded-md space-y-2">
+                    <li>
+                      <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
+                        Profil
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/manage-pets" onClick={() => setIsMenuOpen(false)}>
+                        Hayvanlar
+                      </Link>
+                    </li>
+                    <li>
+                      <button onClick={handleLogout} className="w-full text-left">
+                        Çıkış Yap
+                      </button>
+                    </li>
+                  </ul>
+                </li>
+              ) : (
+                <li>
+                  <Link to="/login" className="hover:text-link-hover text-white" onClick={() => setIsMenuOpen(false)}>
+                    Giriş Yap
+                  </Link>
+                </li>
               )}
-
-              {isLoggedIn && userRole === 'admin' && (
+              {/* Admin menüsü */}
+              {isLoggedIn && user && user.role === 'admin' && (
                 <>
                   <li>
-                    <NavLink
-                      to="/admin"
-                      className={({ isActive }) =>
-                        isActive
-                          ? 'text-link'
-                          : 'hover:text-link-hover text-white'
-                      }
-                    >
+                    <NavLink to="/admin" className={({ isActive }) => isActive ? 'text-link' : 'hover:text-link-hover text-white'}>
                       Yönetici Paneli
                     </NavLink>
                   </li>
-                  <li>
-                    <NavLink
-                      to="/admin/management/users"
-                      className={({ isActive }) =>
-                        isActive
-                          ? 'text-link'
-                          : 'hover:text-link-hover text-white'
-                      }
-                    >
-                      Kullanıcı Yönetimi
-                    </NavLink>
-                  </li>
                 </>
               )}
-              <li className="ml-0 sm:ml-8">
-                {isLoggedIn ? (
-                  <button
-                    onClick={handleLogout}
-                    className="hover:text-link-hover text-white"
-                  >
-                    Çıkış Yap
-                  </button>
-                ) : (
-                  <Link
-                    to="/login"
-                    className="hover:text-link-hover text-white"
-                  >
-                    Giriş Yap
-                  </Link>
-                )}
-              </li>
             </ul>
           </nav>
         </div>

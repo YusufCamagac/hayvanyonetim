@@ -11,7 +11,7 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`; // Doğru başlık: Authorization
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
     return config;
   },
@@ -20,7 +20,7 @@ api.interceptors.request.use(
   }
 );
 
-// Hata işleyici fonksiyon (değişiklik yok)
+// Hata işleyici fonksiyon
 const handleApiError = (error) => {
   if (error.response) {
     // İstek yapıldı ve sunucu 2xx dışında bir durum koduyla yanıt verdi
@@ -38,12 +38,18 @@ const handleApiError = (error) => {
 };
 
 // Evcil Hayvanlar
-export const getPets = () => api.get('/pets').catch(handleApiError);
+export const getPets = (ownerId = null) => {
+  // Değişiklik burada: ownerId parametresi eklendi ve sorguya dahil ediliyor
+  if (ownerId) {
+    return api.get('/pets', { params: { ownerId: ownerId } }).catch(handleApiError);
+  } else {
+    return api.get('/pets').catch(handleApiError);
+  }
+};
 export const getPetById = (id) => api.get(`/pets/${id}`).catch(handleApiError);
 export const createPet = (petData) => api.post('/pets', petData).catch(handleApiError);
 export const updatePet = (id, petData) => api.put(`/pets/${id}`, petData).catch(handleApiError);
 export const deletePet = (id) => api.delete(`/pets/${id}`).catch(handleApiError);
-
 
 // Randevular
 export const getAppointments = () => api.get('/appointments').catch(handleApiError);

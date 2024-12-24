@@ -17,6 +17,7 @@ import AdminLayout from '../layouts/AdminLayout';
 import Register from '../components/Register';
 import AdminReports from '../components/AdminReports';
 import UserProfile from '../components/UserProfile';
+import ManagePets from '../components/ManagePets'; // Yeni eklenen sayfa
 
 const AppRoutes = () => {
   return (
@@ -28,15 +29,16 @@ const AppRoutes = () => {
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
         <Route path="profile" element={<PrivateRoute><UserProfile /></PrivateRoute>} />
-        {/* Kullanıcı giriş yapmışsa, aşağıdaki rotalara erişebilir */}
         <Route path="/" element={<PrivateRoute />}>
           <Route path="appointment-scheduling" element={<AppointmentScheduling />} />
           <Route path="medical-records" element={<MedicalRecords />} />
           <Route path="reminders" element={<Reminders />} />
+          {/* Yeni eklenen rota */}
+          <Route path="manage-pets" element={<ManagePets />} />
         </Route>
       </Route>
 
-      {/* Admin Layout ve Rotaları - Sadece 'admin' rolüne sahip kullanıcılar erişebilir */}
+      {/* Admin Layout ve Rotaları */}
       <Route path="/admin" element={<PrivateRoute roles={['admin']}><AdminLayout /></PrivateRoute>}>
         <Route index element={<AdminManagement />} />
         <Route path="management/users" element={<UserManagement />} />
