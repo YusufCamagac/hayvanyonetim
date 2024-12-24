@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getReminders, createReminder, getPets } from '../api';
+import dayjs from 'dayjs';
 
 const Reminders = () => {
   const [reminders, setReminders] = useState([]);
@@ -22,8 +23,8 @@ const Reminders = () => {
         const response = await getReminders();
         setReminders(response.data);
       } catch (error) {
-        console.error('Hatırlatıcılar alınamadı:', error);
         setError('Hatırlatıcılar alınamadı.');
+        console.error('Hatırlatıcılar alınamadı:', error);
       } finally {
         setIsLoading(false);
       }
@@ -34,8 +35,8 @@ const Reminders = () => {
         const response = await getPets();
         setPets(response.data);
       } catch (error) {
-        console.error('Evcil hayvanlar alınamadı:', error);
         setError('Evcil hayvanlar alınamadı.');
+        console.error('Evcil hayvanlar alınamadı:', error);
       }
     };
 
@@ -63,26 +64,33 @@ const Reminders = () => {
       setMessage('Hatırlatıcı başarıyla eklendi!');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
+      setMessage(error.message); // API'den gelen hata mesajını göster
       console.error('Hatırlatıcı eklenemedi:', error);
-      setError('Hatırlatıcı eklenemedi.');
+      setTimeout(() => setMessage(""), 5000);
     } finally {
       setIsLoading(false);
     }
   };
-  
+
+  const formatDate = (date) => {
+    return dayjs(date).format('DD.MM.YYYY');
+  };
+
   return (
     <div className="bg-background p-4">
       <div className="container mx-auto">
-        <h2 className="text-2xl font-bold mb-4 text-yellow-400">
+        <h2 className="text-2xl font-bold mb-4 text-white">
           Hatırlatıcılar
         </h2>
         {isLoading && <div className="mb-4 p-2 text-gray-100">Yükleniyor...</div>}
         {error && <div className="mb-4 p-2 bg-red-100 text-red-700">{error}</div>}
         {message && (
-          <div className="mb-4 p-2 bg-green-100 text-green-700">{message}</div>
+          <div className={`mb-4 p-2 ${message.startsWith("Hatırlatıcı başarıyla") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+            {message}
+          </div>
         )}
         <form onSubmit={handleAddReminder} className="mb-8 space-y-4">
-          <h3 className="text-xl font-semibold text-gray-100">
+          <h3 className="text-xl font-semibold text-white">
             Yeni Hatırlatıcı Ekle
           </h3>
           <div className="flex flex-wrap -mx-4">
@@ -90,7 +98,7 @@ const Reminders = () => {
               <div>
                 <label
                   htmlFor="newPetId"
-                  className="block mb-2 text-gray-100"
+                  className="block mb-2 text-white"
                 >
                   Evcil Hayvan
                 </label>
@@ -99,7 +107,7 @@ const Reminders = () => {
                   name="petId"
                   value={newReminder.petId}
                   onChange={handleNewReminderChange}
-                  className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-accent"
                   required
                 >
                   <option value="">Seçiniz</option>
@@ -115,7 +123,7 @@ const Reminders = () => {
               <div>
                 <label
                   htmlFor="newType"
-                  className="block mb-2 text-gray-100"
+                  className="block mb-2 text-white"
                 >
                   Tür
                 </label>
@@ -124,7 +132,7 @@ const Reminders = () => {
                   name="type"
                   value={newReminder.type}
                   onChange={handleNewReminderChange}
-                  className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-yellow-400
+                  className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-accent
                   "
                   required
                 >
@@ -139,7 +147,7 @@ const Reminders = () => {
           <div>
             <label
               htmlFor="newDate"
-              className="block mb-2 text-gray-100"
+              className="block mb-2 text-white"
             >
               Tarih
             </label>
@@ -149,7 +157,7 @@ const Reminders = () => {
               name="date"
               value={newReminder.date}
               onChange={handleNewReminderChange}
-              className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400
+              className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent
               "
               required
             />
@@ -157,7 +165,7 @@ const Reminders = () => {
           <div>
             <label
               htmlFor="newNotes"
-              className="block mb-2 text-gray-100"
+              className="block mb-2 text-white"
             >
               Notlar
             </label>
@@ -166,14 +174,14 @@ const Reminders = () => {
               name="notes"
               value={newReminder.notes}
               onChange={handleNewReminderChange}
-              className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400
+              className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent
               "
               placeholder="Hatırlatıcı notları"
             />
           </div>
           <button
             type="submit"
-            className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 px-4 py-2 rounded-md"
+            className="bg-link hover:bg-link-hover text-gray-900 px-4 py-2 rounded-md"
           >
             Hatırlatıcı Ekle
           </button>
@@ -193,7 +201,7 @@ const Reminders = () => {
                   </p>
                   <p className="text-gray-100">Tür: {reminder.type}</p>
                   <p className="text-gray-100">
-                    Tarih: {new Date(reminder.date).toLocaleDateString()}
+                    Tarih: {formatDate(reminder.date)}
                   </p>
                   <p className="text-gray-100">Notlar: {reminder.notes}</p>
                 </div>

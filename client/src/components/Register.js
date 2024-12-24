@@ -8,7 +8,7 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'user',
+    role: 'user', // Varsayılan rol
   });
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
@@ -25,26 +25,22 @@ const Register = () => {
       setMessage('Şifreler eşleşmiyor.');
       return;
     }
+
     try {
       const response = await registerUser(formData);
-      
-      // Kayıt başarılı, token'ı localStorage'a kaydet
-      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('token', response.token);
       localStorage.setItem('isLoggedIn', 'true');
-
       navigate('/'); // Ana sayfaya yönlendir
     } catch (error) {
       console.error('Kayıt hatası:', error);
-      setMessage(
-        error.response?.data?.msg || 'Kayıt olurken bir hata oluştu.'
-      );
+      setMessage(error.message);
     }
   };
 
   return (
     <div className="bg-background min-h-screen flex items-center justify-center">
       <div className="bg-card-bg p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-yellow-400 mb-6">
+        <h2 className="text-2xl font-bold text-center text-headings mb-6">
           Kayıt Ol
         </h2>
         {message && (
@@ -63,13 +59,12 @@ const Register = () => {
               name="username"
               value={formData.username}
               onChange={handleChange}
-              className=" w-full px-3 py-2 border rounded-md
-                bg-gray-700
+              className=" w-full px-                bg-gray-700
                 text-gray-100
                 placeholder-gray-400
                 focus:outline-none
                 focus:ring-2
-                focus:ring-yellow-400
+                focus:ring-accent
               "
               required
               placeholder="Kullanıcı adınızı girin"
@@ -89,7 +84,7 @@ const Register = () => {
                 w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400
                 focus:outline-none
                 focus:ring-2
-                focus:ring-yellow-400
+                focus:ring-accent
               "
               required
               placeholder="E-posta adresinizi girin"
@@ -106,8 +101,7 @@ const Register = () => {
               value={formData.password}
               onChange={handleChange}
               className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2
-                focus:ring-yellow-400
-              "
+                focus:ring-accent"
               required
               placeholder="Şifrenizi girin"
             />
@@ -130,7 +124,7 @@ const Register = () => {
                 placeholder-gray-400
                 focus:outline-none
                 focus:ring-2
-                focus:ring-yellow-400
+                focus:ring-accent
               "
               required
               placeholder="Şifrenizi tekrar girin"
@@ -138,7 +132,7 @@ const Register = () => {
           </div>
           <button
             type="submit"
-            className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-2 px-4 rounded-md"
+            className="w-full bg-accent hover:bg-yellow-500 text-gray-900 font-bold py-2 px-4 rounded-md"
           >
             Kayıt Ol
           </button>

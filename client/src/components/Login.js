@@ -26,31 +26,50 @@ const Login = () => {
 
     try {
       const response = await loginUser({ username, password });
-      const { token } = response.data;
+      
+      // Sunucudan gelen yanıtı ve token'ı kontrol et
+      if (response && response.token) {
+        const token = response.token;
 
-      localStorage.setItem('token', token);
-      localStorage.setItem('isLoggedIn', 'true');
+        if (typeof token === 'string' && token.trim() !== '') {
+          localStorage.setItem('token', token);
+          localStorage.setItem('isLoggedIn', 'true');
 
-      // Kullanıcı rolüne göre yönlendirme yap
-      const decodedToken = jwtDecode(token);
-      if (decodedToken.user.role === 'admin') {
-        navigate('/admin');
+          const decodedToken = jwtDecode(token);
+          if (decodedToken.user.role === 'admin') {
+            navigate('/admin');
+          } else {
+            const from = location.state?.from?.pathname || '/';
+            navigate(from);
+          }
+        } else {
+          console.error('Hata: Sunucudan gelen token geçersiz:', token);
+          setMessage('Oturum açma başarısız: Geçersiz token.');
+        }
       } else {
-        const from = location.state?.from?.pathname || '/';
-        navigate(from);
+        console.error('Hata: Sunucudan token gelmedi veya yanıt hatalı.');
+        setMessage('Oturum açma başarısız: Sunucu yanıt vermedi.');
       }
     } catch (error) {
       console.error('Giriş hatası:', error);
-      setMessage(
-        error.response?.data?.msg || 'Kullanıcı adı veya şifre hatalı!'
-      );
-    }
-  };
+      if (error.response) {
+        // Sunucudan gelen hata mesajını kullan
+        setMessage(error.response.data.msg || 'Oturum açma başarısız: Sunucu hatası.');
+      } else if (error.request) {
+        // İstek yapılmış ama yanıt alınamamış
+        setMessage('Oturum açma başarısız: Sunucuya erişilemiyor.');
+      } else {
+        // Diğer hatalar
+        setMessage('Oturum açma başarısız: Bilinmeyen hata.');
+      }
+      }
+    };
+  
 
   return (
     <div className="bg-background p-4 min-h-screen flex justify-center items-center">
       <div className="bg-card-bg p-8 rounded-lg shadow-lg w-96">
-        <h2 className="text-2xl font-bold mb-4 text-yellow-400">Giriş Yap</h2>
+        <h2 className="text-2xl font-bold mb-4 text-headings">Giriş Yap</h2>
         {message && (
           <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
             {message}
@@ -67,7 +86,7 @@ const Login = () => {
               name="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              className="w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent"
               required
               placeholder="Kullanıcı adınızı girin"
             />
@@ -82,21 +101,21 @@ const Login = () => {
               name="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              className="w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent"
               required
               placeholder="Şifrenizi girin"
             />
           </div>
           <button
             type="submit"
-            className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 px-4 py-2 rounded-md"
+            className="bg-accent hover:bg-yellow-500 text-gray-900 px-4 py-2 rounded-md"
           >
             Giriş Yap
           </button>
         </form>
         <div className="mt-4 text-gray-100">
           Hesabınız yok mu?{' '}
-          <Link to="/register" className="text-blue-300 hover:underline">
+          <Link to="/register" className="text-link hover:underline">
             Kayıt Ol
           </Link>
         </div>

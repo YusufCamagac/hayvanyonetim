@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-  getAppointments,
-  updateAppointment,
-  deleteAppointment,
-  getPets,
-} from '../api';
-import { TextField } from '@mui/material';
+import { getAppointments, updateAppointment, deleteAppointment, getPets } from '../api';
+import { TextField, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs from 'dayjs';
 
@@ -143,10 +138,14 @@ const AppointmentsManagement = () => {
     setError(null);
   };
 
+  const formatDate = (date) => {
+    return dayjs(date).format('DD.MM.YYYY HH:mm');
+  };
+
   return (
     <div className="bg-background p-4">
       <div className="container mx-auto">
-        <h2 className="text-2xl font-bold mb-4 text-yellow-400">
+        <h2 className="text-2xl font-bold mb-4 text-headings">
           Randevuları Yönet
         </h2>
 
@@ -170,7 +169,7 @@ const AppointmentsManagement = () => {
                   Evcil Hayvan: {pet ? pet.name : 'Bilinmiyor'}
                 </p>
                 <p className="text-gray-100">
-                  Tarih: {dayjs(appointment.date).format('DD.MM.YYYY HH:mm')}
+                  Tarih: {formatDate(appointment.date)}
                 </p>
                 <p className="text-gray-100">
                   Sağlayıcı: {appointment.provider}
@@ -201,124 +200,81 @@ const AppointmentsManagement = () => {
               Randevu Düzenle
             </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="flex flex-wrap -mx-4">
-                <div className="w-full md:w-1/2 px-4">
-                  <div>
-                    <label
-                      htmlFor="petId"
-                      className="block mb-2 text-gray-100"
-                    >
-                      Evcil Hayvan
-                    </label>
-                    <select
-                      id="petId"
-                      name="petId"
-                      value={formData.petId}
-                      onChange={handleChange}
-                      className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                      required
-                    >
-                      <option value="">Seçiniz</option>
-                      {pets.map((pet) => (
-                        <option key={pet.id} value={pet.id}>
-                          {pet.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <div className="w-full md:w-1/2 px-4">
-                  <div>
-                    <label
-                      htmlFor="provider"
-                      className="block mb-2 text-gray-100"
-                    >
-                      Sağlayıcı
-                    </label>
-                    <input
-                      type="text"
-                      id="provider"
-                      name="provider"
-                      value={formData.provider}
-                      onChange={handleChange}
-                      className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                      required
-                      placeholder="Veteriner adı"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-wrap -mx-4">
-                <div className="w-full px-4">
-                  <div>
-                    <label
-                      htmlFor="date"
-                      className="block mb-2 text-gray-100"
-                    >
-                      Tarih ve Saat
-                    </label>
-                    <DateTimePicker
-                      name="date"
-                      value={formData.date}
-                      onChange={handleDateChange}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          fullWidth
-                          InputProps={{
-                            className: 'bg-gray-700 text-gray-100',
-                            style: { color: 'white' },
-                          }}
-                        />
-                      )}
-                      className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-yellow-400
-                      "
-                      required
-                      slotProps={{
-                        textField: {
-                          variant: 'outlined',
-                          fullWidth: true,
-                          margin: 'normal',
-                          required: true,
-                          name: 'date',
-                          InputLabelProps: {
-                            className: 'text-gray-100',
-                          },
-                          InputProps: {
-                            className: 'text-gray-100',
-                          },
-                          inputProps: {
-                            className:
-                              'bg-gray-700 text-gray-100 placeholder-gray-400',
-                          },
-                        },
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-              <div>
-                <label
-                  htmlFor="reason"
-                  className="block mb-2 text-gray-100"
-                >
-                  Randevu Nedeni
-                </label>
-                <textarea
-                  id="reason"
-                  name="reason"
-                  value={formData.reason}
+              <FormControl fullWidth>
+                <InputLabel id="pet-select-label" className="text-gray-100">Evcil Hayvan</InputLabel>
+                <Select
+                  labelId="pet-select-label"
+                  id="petId"
+                  name="petId"
+                  value={formData.petId}
                   onChange={handleChange}
-                  className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2
-                    focus:ring-yellow-400
-                  "
-                  placeholder="Randevu nedeninizi kısaca açıklayınız"
-                />
-              </div>
+                  label="Evcil Hayvan"
+                  className="text-gray-100"
+                >
+                  <MenuItem value="">
+                    <em>Seçiniz</em>
+                  </MenuItem>
+                  {pets.map((pet) => (
+                    <MenuItem key={pet.id} value={pet.id}>
+                      {pet.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <TextField
+                fullWidth
+                label="Sağlayıcı"
+                name="provider"
+                value={formData.provider}
+                onChange={handleChange}
+                InputLabelProps={{
+                  className: 'text-gray-100',
+                  shrink: true,
+                }}
+                InputProps={{
+                  className: 'text-gray-100',
+                }}
+              />
+              <DateTimePicker
+                label="Tarih ve Saat"
+                name="date"
+                value={formData.date}
+                onChange={handleDateChange}
+                className="text-gray-100"
+                slotProps={{
+                  textField: {
+                    variant: "outlined",
+                    fullWidth: true,
+                    InputLabelProps: {
+                      className: 'text-gray-100',
+                      shrink: true,
+                    },
+                    InputProps: {
+                      className: 'text-gray-100',
+                    },
+                  },
+                }}
+              />
+              <TextField
+                fullWidth
+                label="Randevu Nedeni"
+                name="reason"
+                value={formData.reason}
+                onChange={handleChange}
+                multiline
+                rows={4}
+                InputLabelProps={{
+                  className: 'text-gray-100',
+                  shrink: true,
+                }}
+                InputProps={{
+                  className: 'text-gray-100',
+                }}
+              />
               <div className="flex items-center">
                 <button
                   type="submit"
-                  className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 px-4 py-2 rounded-md mr-2"
+                  className="bg-accent hover:bg-yellow-500 text-gray-900 px-4 py-2 rounded-md mr-2"
                 >
                   Kaydet
                 </button>

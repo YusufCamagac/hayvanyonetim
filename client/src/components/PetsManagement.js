@@ -28,8 +28,8 @@ const PetsManagement = () => {
       const response = await getPets();
       setPets(response.data);
     } catch (error) {
-      console.error('Evcil hayvanlar alınamadı:', error);
       setError('Evcil hayvanlar alınamadı.');
+      console.error('Evcil hayvanlar alınamadı:', error);
     } finally {
       setIsLoading(false);
     }
@@ -62,8 +62,8 @@ const PetsManagement = () => {
         setMessage('Evcil hayvan başarıyla silindi.');
         setTimeout(() => setMessage(''), 3000);
       } catch (error) {
-        console.error('Evcil hayvan silinemedi:', error);
         setError('Evcil hayvan silinemedi.');
+        console.error('Evcil hayvan silinemedi:', error);
       } finally {
         setIsLoading(false);
       }
@@ -89,8 +89,8 @@ const PetsManagement = () => {
         setMessage('Evcil hayvan başarıyla güncellendi.');
         setTimeout(() => setMessage(''), 3000);
       } catch (error) {
-        console.error('Evcil hayvan güncellenemedi:', error);
         setError('Evcil hayvan güncellenemedi.');
+        console.error('Evcil hayvan güncellenemedi:', error);
       } finally {
         setIsLoading(false);
       }
@@ -115,7 +115,7 @@ const PetsManagement = () => {
   return (
     <div className="bg-background p-4">
       <div className="container mx-auto">
-        <h2 className="text-2xl font-bold mb-4 text-yellow-400">
+        <h2 className="text-2xl font-bold mb-4 text-headings">
           Evcil Hayvanları Yönet
         </h2>
 
@@ -180,7 +180,7 @@ const PetsManagement = () => {
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
-                      className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent"
                       required
                       placeholder="Evcil hayvanın adı"
                     />
@@ -200,7 +200,7 @@ const PetsManagement = () => {
                       name="species"
                       value={formData.species}
                       onChange={handleChange}
-                      className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent"
                       required
                       placeholder="Örn: Kedi, Köpek"
                     />
@@ -222,7 +222,7 @@ const PetsManagement = () => {
                       name="breed"
                       value={formData.breed}
                       onChange={handleChange}
-                      className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent"
                       placeholder="Örn: Siyam, Golden Retriever"
                     />
                   </div>
@@ -241,7 +241,7 @@ const PetsManagement = () => {
                       name="age"
                       value={formData.age}
                       onChange={handleChange}
-                      className=" w-full px-3 py-2  border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      className=" w-full px-3 py-2  border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent"
                       required
                       min="0"
                       max="30"
@@ -264,7 +264,7 @@ const PetsManagement = () => {
                       name="gender"
                       value={formData.gender}
                       onChange={handleChange}
-                      className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-accent"
                       required
                     >
                       <option value="">Seçiniz</option>
@@ -287,14 +287,14 @@ const PetsManagement = () => {
                   value={formData.medicalHistory}
                   onChange={handleChange}
                   className="
-                    w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent"
                   placeholder="Evcil hayvanın tıbbi geçmişi"
                 />
               </div>
               <div className="flex items-center">
                 <button
                   type="submit"
-                  className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 px-4 py-2 rounded-md mr-2"
+                  className="bg-accent hover:bg-yellow-500 text-gray-900 px-4 py-2 rounded-md mr-2"
                 >
                   Kaydet
                 </button>

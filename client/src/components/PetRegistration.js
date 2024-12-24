@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { createPet } from '../api';
-// import anaSayfaHero from '../assents/veteriner.jpg'; // Eğer bu görsel ana sayfaya özgü ise burada kullanmanıza gerek yok
-import kopekMuayene from '../assents/resim3.jpg'; 
+import kopekMuayene from '../assents/resim3.jpg';
 
 const PetRegistration = () => {
   const [pet, setPet] = useState({
@@ -13,6 +12,8 @@ const PetRegistration = () => {
     medicalHistory: '',
   });
   const [message, setMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  // const [error, setError] = useState(null); // Kaldırıldı
 
   const handleChange = (e) => {
     setPet({ ...pet, [e.target.name]: e.target.value });
@@ -20,6 +21,8 @@ const PetRegistration = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    // setError(null); // Kaldırıldı
     try {
       const response = await createPet(pet);
       setMessage('Evcil hayvan başarıyla kaydedildi!');
@@ -31,12 +34,14 @@ const PetRegistration = () => {
         gender: '',
         medicalHistory: '',
       });
-      console.log(response.data);
-
       setTimeout(() => setMessage(''), 3000);
+      console.log(response.data);
     } catch (error) {
-      setMessage('Evcil hayvan kaydedilemedi.');
+      setMessage(error.message); // API'den gelen hata mesajı gösterilecek
       console.error(error);
+      setTimeout(() => setMessage(""), 5000);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -47,10 +52,10 @@ const PetRegistration = () => {
           <div className="w-full lg:w-1/2 px-4">
             <img
               src={kopekMuayene}
-              alt="Evcil Hayvan Kaydı"
+              alt="Veteriner kliniğinde bir veteriner, köpeği muayene ediyor."
               className="w-full rounded-lg shadow-lg mb-4"
             />
-            <h2 className="text-2xl font-bold mb-4 text-yellow-400">
+            <h2 className="text-2xl font-bold mb-4 text-headings">
               Evcil Hayvan Kaydı
             </h2>
             <p className="text-gray-100 mb-4">
@@ -60,7 +65,7 @@ const PetRegistration = () => {
           </div>
           <div className="w-full lg:w-1/2 px-4">
             {message && (
-              <div className="mb-4 p-2 bg-red-100 text-red-700">
+              <div className={`mb-4 p-2 ${message.startsWith("Evcil hayvan başarıyla") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
                 {message}
               </div>
             )}
@@ -91,7 +96,7 @@ const PetRegistration = () => {
                         placeholder-gray-400
                         focus:outline-none
                         focus:ring-2
-                        focus:ring-yellow-400
+                        focus:ring-accent
                       "
                       required
                       placeholder="Evcil hayvanınızın adı"
@@ -123,7 +128,7 @@ const PetRegistration = () => {
                         placeholder-gray-400
                         focus:outline-none
                         focus:ring-2
-                        focus:ring-yellow-400
+                        focus:ring-accent
                       "
                       required
                       placeholder="Örn: Kedi, Köpek"
@@ -158,7 +163,7 @@ const PetRegistration = () => {
                         placeholder-gray-400
                         focus:outline-none
                         focus:ring-2
-                        focus:ring-yellow-400
+                        focus:ring-accent
                       "
                       placeholder="Örn: Siyam, Golden Retriever"
                     />
@@ -189,7 +194,7 @@ const PetRegistration = () => {
                         placeholder-gray-400
                         focus:outline-none
                         focus:ring-2
-                        focus:ring-yellow-400
+                        focus:ring-accent
                       "
                       required
                       min="0"
@@ -224,7 +229,7 @@ const PetRegistration = () => {
                         text-gray-100
                         focus:outline-none
                         focus:ring-2
-                        focus:ring-yellow-400
+                        focus:ring-accent
                       "
                       required
                     >
@@ -259,14 +264,14 @@ const PetRegistration = () => {
                     placeholder-gray-400
                     focus:outline-none
                     focus:ring-2
-                    focus:ring-yellow-400
+                    focus:ring-accent
                   "
                   placeholder="Evcil hayvanınızın tıbbi geçmişi"
                 />
               </div>
               <button
                 type="submit"
-                className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 px-4 py-2 rounded-md"
+                className="bg-accent hover:bg-yellow-500 text-gray-900 px-4 py-2 rounded-md"
               >
                 Kaydet
               </button>

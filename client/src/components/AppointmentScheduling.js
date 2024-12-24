@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createAppointment, getPets } from "../api";
-import { TextField } from "@mui/material";
+import { TextField, MenuItem, Select, FormControl, InputLabel } from "@mui/material";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import dayjs from "dayjs";
 
@@ -8,7 +8,6 @@ const AppointmentScheduling = () => {
   const [appointment, setAppointment] = useState({
     petId: "",
     date: dayjs(),
-    time: "",
     provider: "",
     reason: "",
   });
@@ -32,7 +31,7 @@ const AppointmentScheduling = () => {
   };
 
   const handleChange = (e) => {
-      setAppointment({ ...appointment, [e.target.name]: e.target.value });
+    setAppointment({ ...appointment, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
@@ -48,127 +47,187 @@ const AppointmentScheduling = () => {
       setAppointment({
         petId: "",
         date: dayjs(),
-        time: "",
         provider: "",
         reason: "",
       });
 
-      setTimeout(() => setMessage(""), 3000);
-
+      setTimeout(() => setMessage(""), 5000);
       console.log(response.data);
     } catch (error) {
-      setMessage("Randevu oluşturulamadı.");
+      setMessage(error.message);
       console.error(error);
+      setTimeout(() => setMessage(""), 5000);
     }
   };
 
   return (
     <div className="bg-background">
       <div className="container mx-auto p-4">
-        <h2 className="text-2xl font-bold mb-4 text-yellow-400">
+        <h2 className="text-2xl font-bold mb-4 text-white">
           Randevu Alma
         </h2>
         {message && (
-          <div className="mb-4 p-2 bg-red-100 text-red-700">{message}</div>
+          <div className={`mb-4 p-2 ${message.startsWith("Randevu başarıyla") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+            {message}
+          </div>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="petId" className="block mb-2 text-gray-100">
-              Evcil Hayvan
-            </label>
-            <select
+          <FormControl fullWidth>
+            <InputLabel id="pet-select-label" sx={{ color: 'white' }}>Evcil Hayvan</InputLabel>
+            <Select
+              labelId="pet-select-label"
               id="petId"
               name="petId"
               value={appointment.petId}
               onChange={handleChange}
-              className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-yellow-400
-              "
-              required
+              label="Evcil Hayvan"
+              sx={{
+                backgroundColor: '#28282B',
+                color: 'white',
+                '& .MuiSvgIcon-root': {
+                  color: 'white',
+                },
+                '& .MuiSelect-select': {
+                  color: '#e2e8f0',
+                },
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'white',
+                },
+                '&:hover .MuiOutlinedInput-notchedOutline': { // Hover durumunda da border rengi beyaz
+                  borderColor: 'white',
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { // Focus durumunda da border rengi beyaz
+                  borderColor: 'white',
+                },
+              }}
             >
-              <option value="">Seçiniz</option>
+              <MenuItem value="">
+                <em>Seçiniz</em>
+              </MenuItem>
               {pets.map((pet) => (
-                <option key={pet.id} value={pet.id}>
+                <MenuItem key={pet.id} value={pet.id}>
                   {pet.name}
-                </option>
+                </MenuItem>
               ))}
-            </select>
-          </div>
-          <div className="flex flex-wrap -mx-4">
-            <div className="w-full px-4">
-              <div>
-                <label htmlFor="date" className="block mb-2 text-gray-100">
-                  Tarih ve Saat
-                </label>
-                <DateTimePicker
-                  name="date"
-                  value={appointment.date}
-                  onChange={handleDateChange}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      fullWidth
-                      InputProps={{
-                        className: "bg-gray-700 text-gray-100",
-                        style: { color: "white" },
-                      }}
-                    />
-                  )}
-                  className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                  required
-                  slotProps={{
-                    textField: {
-                      variant: "outlined",
-                      fullWidth: true,
-                      margin: "normal",
-                      required: true,
-                      name: "date",
-                      InputLabelProps: {
-                        className: "text-gray-100",
-                      },
-                      InputProps: {
-                        className: "text-gray-100",
-                      },
-                      inputProps: {
-                        className:
-                          "bg-gray-700 text-gray-100 placeholder-gray-400",
-                      },
-                    },
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-          <div>
-            <label htmlFor="provider" className="block mb-2 text-gray-100">
-              Sağlayıcı
-            </label>
-            <input
-              type="text"
-              id="provider"
-              name="provider"
-              value={appointment.provider}
-              onChange={handleChange}
-              className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 "
-              required
-              placeholder="Veteriner adı"
-            />
-          </div>
-          <div>
-            <label htmlFor="reason" className="block mb-2 text-gray-100">
-              Randevu Nedeni
-            </label>
-            <textarea
-              id="reason"
-              name="reason"
-              value={appointment.reason}
-              onChange={handleChange}
-              className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              placeholder="Randevu nedeninizi kısaca açıklayınız"
-            />
-          </div>
+            </Select>
+          </FormControl>
+          <DateTimePicker
+            label="Tarih ve Saat"
+            name="date"
+            value={appointment.date}
+            onChange={handleDateChange}
+            sx={{
+              width: '100%',
+              '& .MuiInputBase-root': {
+                backgroundColor: '#28282B',
+                color: 'white',
+                '& .MuiSvgIcon-root': {
+                  color: 'white',
+                },
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'white',
+                },
+                '&:hover .MuiOutlinedInput-notchedOutline': { // Hover durumunda da border rengi beyaz
+                  borderColor: 'white',
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { // Focus durumunda da border rengi beyaz
+                  borderColor: 'white',
+                },
+              },
+              "& .MuiInputLabel-root": {
+                color: 'white',
+                "&.Mui-focused": {
+                  color: 'white'
+                }
+              },
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "white"
+                },
+                "&:hover fieldset": {
+                  borderColor: "white"
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "white"
+                }
+              }
+            }}
+            slotProps={{
+              textField: {
+                variant: "outlined",
+                fullWidth: true,
+                InputLabelProps: {
+                  style: { color: 'white' },
+                  shrink: true,
+                },
+                InputProps: {
+                  style: { color: 'white' },
+                  placeholder: 'GG.AA.YYYY SS:DD',
+                },
+              },
+            }}
+          />
+          <TextField
+            fullWidth
+            label="Sağlayıcı"
+            name="provider"
+            value={appointment.provider}
+            onChange={handleChange}
+            InputLabelProps={{
+              style: { color: 'white' },
+              shrink: true,
+            }}
+            InputProps={{
+              style: { color: 'white' },
+            }}
+            sx={{
+              "& .MuiInputBase-root": {
+                backgroundColor: '#28282B',
+                '&:hover .MuiOutlinedInput-notchedOutline': { // Hover durumunda da border rengi beyaz
+                  borderColor: 'white',
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { // Focus durumunda da border rengi beyaz
+                  borderColor: 'white',
+                },
+              },
+              "& .MuiOutlinedInput-notchedOutline": {
+                borderColor: 'white',
+              },
+            }}
+          />
+          <TextField
+            fullWidth
+            label="Randevu Nedeni"
+            name="reason"
+            value={appointment.reason}
+            onChange={handleChange}
+            multiline
+            rows={4}
+            InputLabelProps={{
+              style: { color: 'white' },
+              shrink: true,
+            }}
+            InputProps={{
+              style: { color: 'white' },
+            }}
+            sx={{
+              "& .MuiInputBase-root": {
+                backgroundColor: '#28282B',
+                '&:hover .MuiOutlinedInput-notchedOutline': { // Hover durumunda da border rengi beyaz
+                  borderColor: 'white',
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { // Focus durumunda da border rengi beyaz
+                  borderColor: 'white',
+                },
+              },
+              "& .MuiOutlinedInput-notchedOutline": {
+                borderColor: 'white',
+              },
+            }}
+          />
           <button
             type="submit"
-            className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 px-4 py-2 rounded-md"
+            className="bg-link hover:bg-link-hover text-gray-900 px-4 py-2 rounded-md"
           >
             Randevu Oluştur
           </button>

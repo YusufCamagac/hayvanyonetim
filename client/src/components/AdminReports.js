@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { getAppointmentReport, getPetReport, getUserReport } from '../api';
 import {
-  TextField,
-  Button,
-  Select,
-  MenuItem,
   FormControl,
   InputLabel,
+  Select,
+  MenuItem,
+  Button,
   Grid,
+  TextField
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
@@ -20,30 +20,26 @@ const AdminReports = () => {
     petType: '',
     species: '',
     gender: '',
-    minAge: '',
-    maxAge: '',
+    minAge: null,
+    maxAge: null,
     role: ''
   });
   const [reportData, setReportData] = useState([]);
   const [reportType, setReportType] = useState('appointments');
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // isLoading tanımlandı
   const [error, setError] = useState(null);
 
-  const handleFilterChange = (e) => {
-    setFilters({ ...filters, [e.target.name]: e.target.value });
+  const handleFilterChange = (event) => {
+    const { name, value } = event.target;
+    setFilters({ ...filters, [name]: value });
   };
 
-  const handleStartDateChange = (date) => {
-    setFilters({ ...filters, startDate: date });
-  };
-
-  const handleEndDateChange = (date) => {
-    setFilters({ ...filters, endDate: date });
+  const handleDateChange = (name, date) => {
+    setFilters({ ...filters, [name]: date });
   };
 
   const handleReportTypeChange = (event) => {
     setReportType(event.target.value);
-    // Seçili rapor türü değiştiğinde, form verilerini ve sonuçları sıfırla
     setFilters({
       startDate: null,
       endDate: null,
@@ -51,67 +47,45 @@ const AdminReports = () => {
       petType: '',
       species: '',
       gender: '',
-      minAge: '',
-      maxAge: '',
+      minAge: null,
+      maxAge: null,
       role: ''
     });
     setReportData([]);
+    setError(null);
   };
 
-  // Randevu Raporu için submit fonksiyonu
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setIsLoading(true); // setLoading yerine setIsLoading kullanıldı
     setError(null);
     try {
-      const response = await getAppointmentReport(filters);
+      let response;
+      if (reportType === 'appointments') {
+        response = await getAppointmentReport(filters);
+      } else if (reportType === 'pets') {
+        response = await getPetReport(filters);
+      } else if (reportType === 'users') {
+        response = await getUserReport(filters);
+      }
       setReportData(response.data);
     } catch (err) {
-      console.error('Randevu raporu alınırken hata oluştu:', err);
-      setError('Randevu raporu alınamadı.');
+      console.error(`${reportType} raporu alınırken hata oluştu:`, err);
+      setError(`${reportType} raporu alınamadı.`);
     } finally {
-      setLoading(false);
+      setIsLoading(false); // setLoading yerine setIsLoading kullanıldı
     }
   };
 
-  // Evcil Hayvan Raporu için submit fonksiyonu
-  const handlePetReportSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await getPetReport(filters);
-      setReportData(response.data);
-    } catch (err) {
-      console.error('Evcil hayvan raporu alınırken hata oluştu:', err);
-      setError('Evcil hayvan raporu alınamadı.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Kullanıcı Raporu için submit fonksiyonu
-  const handleUserReportSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await getUserReport(filters);
-      setReportData(response.data);
-    } catch (err) {
-      console.error('Kullanıcı raporu alınırken hata oluştu:', err);
-      setError('Kullanıcı raporu alınamadı.');
-    } finally {
-      setLoading(false);
-    }
+  const formatDate = (date) => {
+    return dayjs(date).format('DD.MM.YYYY');
   };
 
   return (
     <div className="bg-background p-4">
       <div className="container mx-auto">
-        <h2 className="text-2xl font-bold mb-4 text-yellow-400">Raporlar</h2>
+        <h2 className="text-2xl font-bold mb-4 text-headings">Raporlar</h2>
 
-        {/* Rapor Türü Seçimi */}
         <div className="mb-4">
           <FormControl fullWidth>
             <InputLabel id="report-type-label" className="text-gray-100">
@@ -119,20 +93,11 @@ const AdminReports = () => {
             </InputLabel>
             <Select
               labelId="report-type-label"
-              id="reportType"
-              name="reportType"
+              id="report-type-select"
               value={reportType}
-              onChange={handleReportTypeChange}
               label="Rapor Türü"
+              onChange={handleReportTypeChange}
               className="text-gray-100"
-              MenuProps={{
-                PaperProps: {
-                  style: {
-                    backgroundColor: '#28282B',
-                    color: '#e2e8f0',
-                  },
-                },
-              }}
             >
               <MenuItem value="appointments">Randevu Raporu</MenuItem>
               <MenuItem value="pets">Evcil Hayvan Raporu</MenuItem>
@@ -146,54 +111,50 @@ const AdminReports = () => {
         )}
         {error && <div className="mb-4 p-2 bg-red-100 text-red-700">{error}</div>}
 
-        {/* Seçilen Rapor Türüne Göre Form */}
-        {reportType === 'appointments' && (
-          <>
-            <h3 className="text-xl font-semibold text-gray-100">
-              Randevu Raporu
-            </h3>
-            <form onSubmit={handleSubmit} className="mb-4">
-              <Grid container spacing={2}>
+        <form onSubmit={handleSubmit}>
+          <Grid container spacing={2}>
+            {reportType === 'appointments' && (
+              <>
                 <Grid item xs={12} sm={6}>
                   <DatePicker
                     label="Başlangıç Tarihi"
                     value={filters.startDate}
-                    onChange={handleStartDateChange}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        fullWidth
-                        margin="normal"
-                        InputLabelProps={{
+                    onChange={(date) => handleDateChange('startDate', date)}
+                    format="DD.MM.YYYY"
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        variant: 'outlined',
+                        InputLabelProps: {
                           className: 'text-gray-100',
                           shrink: true,
-                        }}
-                        InputProps={{
+                        },
+                        InputProps: {
                           className: 'text-gray-100',
-                        }}
-                      />
-                    )}
+                        },
+                      },
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <DatePicker
                     label="Bitiş Tarihi"
                     value={filters.endDate}
-                    onChange={handleEndDateChange}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        fullWidth
-                        margin="normal"
-                        InputLabelProps={{
+                    onChange={(date) => handleDateChange('endDate', date)}
+                    format="DD.MM.YYYY"
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        variant: 'outlined',
+                        InputLabelProps: {
                           className: 'text-gray-100',
                           shrink: true,
-                        }}
-                        InputProps={{
+                        },
+                        InputProps: {
                           className: 'text-gray-100',
-                        }}
-                      />
-                    )}
+                        },
+                      },
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -203,7 +164,6 @@ const AdminReports = () => {
                     name="provider"
                     value={filters.provider}
                     onChange={handleFilterChange}
-                    margin="normal"
                     InputLabelProps={{
                       className: 'text-gray-100',
                       shrink: true,
@@ -214,26 +174,18 @@ const AdminReports = () => {
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth margin="normal">
+                  <FormControl fullWidth>
                     <InputLabel id="pet-type-label" className="text-gray-100">
                       Evcil Hayvan Türü
                     </InputLabel>
                     <Select
                       labelId="pet-type-label"
-                      id="petType"
+                      id="pet-type-select"
                       name="petType"
                       value={filters.petType}
                       onChange={handleFilterChange}
                       label="Evcil Hayvan Türü"
                       className="text-gray-100"
-                      MenuProps={{
-                        PaperProps: {
-                          style: {
-                            backgroundColor: '#28282B',
-                            color: '#e2e8f0',
-                          },
-                        },
-                      }}
                     >
                       <MenuItem value="">Hepsi</MenuItem>
                       <MenuItem value="Köpek">Köpek</MenuItem>
@@ -243,28 +195,11 @@ const AdminReports = () => {
                     </Select>
                   </FormControl>
                 </Grid>
-                <Grid item xs={12}>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    style={{ backgroundColor: '#EAB508', color: '#0D0D0D' }}
-                  >
-                    Raporu Oluştur
-                  </Button>
-                </Grid>
-              </Grid>
-            </form>
-          </>
-        )}
+              </>
+            )}
 
-        {reportType === 'pets' && (
-          <>
-            <h3 className="text-xl font-semibold text-gray-100">
-              Evcil Hayvan Raporu
-            </h3>
-            <form onSubmit={handlePetReportSubmit} className="mb-4">
-              {/* Evcil Hayvan Raporu için Filtreler */}
-              <Grid container spacing={2}>
+            {reportType === 'pets' && (
+              <>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
@@ -272,7 +207,6 @@ const AdminReports = () => {
                     name="species"
                     value={filters.species}
                     onChange={handleFilterChange}
-                    margin="normal"
                     InputLabelProps={{
                       className: 'text-gray-100',
                       shrink: true,
@@ -289,7 +223,6 @@ const AdminReports = () => {
                     name="gender"
                     value={filters.gender}
                     onChange={handleFilterChange}
-                    margin="normal"
                     InputLabelProps={{
                       className: 'text-gray-100',
                       shrink: true,
@@ -305,15 +238,15 @@ const AdminReports = () => {
                     label="Minimum Yaş"
                     name="minAge"
                     type="number"
-                    value={filters.minAge}
+                    value={filters.minAge || ''}
                     onChange={handleFilterChange}
-                    margin="normal"
                     InputLabelProps={{
                       className: 'text-gray-100',
                       shrink: true,
                     }}
                     InputProps={{
                       className: 'text-gray-100',
+                      inputProps: { min: 0 }
                     }}
                   />
                 </Grid>
@@ -323,103 +256,78 @@ const AdminReports = () => {
                     label="Maksimum Yaş"
                     name="maxAge"
                     type="number"
-                    value={filters.maxAge}
+                    value={filters.maxAge || ''}
                     onChange={handleFilterChange}
-                    margin="normal"
                     InputLabelProps={{
                       className: 'text-gray-100',
                       shrink: true,
                     }}
                     InputProps={{
                       className: 'text-gray-100',
+                      inputProps: { min: 0 }
                     }}
                   />
                 </Grid>
-                <Grid item xs={12}>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    style={{ backgroundColor: '#EAB508', color: '#0D0D0D' }}
-                  >
-                    Raporu Oluştur
-                  </Button>
-                </Grid>
-              </Grid>
-            </form>
-          </>
-        )}
+              </>
+            )}
 
-        {reportType === 'users' && (
-          <>
-            <h3 className="text-xl font-semibold text-gray-100">
-              Kullanıcı Raporu
-            </h3>
-            <form onSubmit={handleUserReportSubmit} className="mb-4">
-              {/* Kullanıcı Raporu için Filtreler */}
-              <Grid container spacing={2}>
+            {reportType === 'users' && (
+              <>
                 <Grid item xs={12} sm={6}>
                   <DatePicker
                     label="Başlangıç Tarihi"
                     value={filters.startDate}
-                    onChange={handleStartDateChange}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        fullWidth
-                        margin="normal"
-                        InputLabelProps={{
+                    onChange={(date) => handleDateChange('startDate', date)}
+                    format="DD.MM.YYYY"
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        variant: 'outlined',
+                        InputLabelProps: {
                           className: 'text-gray-100',
                           shrink: true,
-                        }}
-                        InputProps={{
+                        },
+                        InputProps: {
                           className: 'text-gray-100',
-                        }}
-                      />
-                    )}
+                        },
+                      },
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <DatePicker
                     label="Bitiş Tarihi"
                     value={filters.endDate}
-                    onChange={handleEndDateChange}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        fullWidth
-                        margin="normal"
-                        InputLabelProps={{
+                    onChange={(date) => handleDateChange('endDate', date)}
+                    format="DD.MM.YYYY"
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        variant: 'outlined',
+                        InputLabelProps: {
                           className: 'text-gray-100',
                           shrink: true,
-                        }}
-                        InputProps={{
+                        },
+                        InputProps: {
                           className: 'text-gray-100',
-                        }}
-                      />
-                    )}
+                        },
+                      },
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth margin="normal">
+                  <FormControl fullWidth>
                     <InputLabel id="user-role-label" className="text-gray-100">
                       Rol
                     </InputLabel>
                     <Select
                       labelId="user-role-label"
-                      id="role"
+                      id="user-role-select"
                       name="role"
                       value={filters.role}
                       onChange={handleFilterChange}
                       label="Rol"
                       className="text-gray-100"
-                      MenuProps={{
-                        PaperProps: {
-                          style: {
-                            backgroundColor: '#28282B',
-                            color: '#e2e8f0',
-                          },
-                        },
-                      }}
                     >
                       <MenuItem value="">Hepsi</MenuItem>
                       <MenuItem value="admin">Admin</MenuItem>
@@ -427,19 +335,20 @@ const AdminReports = () => {
                     </Select>
                   </FormControl>
                 </Grid>
-                <Grid item xs={12}>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    style={{ backgroundColor: '#EAB508', color: '#0D0D0D' }}
-                  >
-                    Raporu Oluştur
-                  </Button>
-                </Grid>
-              </Grid>
-            </form>
-          </>
-        )}
+              </>
+            )}
+
+            <Grid item xs={12}>
+              <Button
+                type="submit"
+                variant="contained"
+                style={{ backgroundColor: '#EAB508', color: '#0D0D0D' }}
+              >
+                Raporu Oluştur
+              </Button>
+            </Grid>
+          </Grid>
+        </form>
 
         {/* Rapor Sonuçları */}
         {!isLoading && reportData.length > 0 && (
@@ -448,68 +357,65 @@ const AdminReports = () => {
               {reportType === 'appointments'
                 ? 'Randevu Raporu'
                 : reportType === 'pets'
-                ? 'Evcil Hayvan Raporu'
-                : 'Kullanıcı Raporu'}
+                  ? 'Evcil Hayvan Raporu'
+                  : 'Kullanıcı Raporu'}
             </h3>
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   {reportType === 'appointments' && (
                     <>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Tarih
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Evcil Hayvan
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Tür
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Veteriner
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Sebep
                       </th>
                     </>
                   )}
                   {reportType === 'pets' && (
                     <>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Ad
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Tür
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Cins
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Yaş
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Cinsiyet
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Tıbbi Geçmiş
                       </th>
                     </>
                   )}
                   {reportType === 'users' && (
                     <>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         ID
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Kullanıcı Adı
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         E-posta
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Rol
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Kayıt Tarihi
                       </th>
                     </>
@@ -517,12 +423,12 @@ const AdminReports = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {reportData.map((item) => (
-                  <tr key={item.id}>
+                {reportData.map((item, index) => (
+                  <tr key={index}>
                     {reportType === 'appointments' && (
                       <>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          {new Date(item.date).toLocaleString()}
+                          {formatDate(item.date)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {item.petName}
@@ -555,9 +461,6 @@ const AdminReports = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           {item.gender}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {item.medicalHistory}
-                        </td>
                       </>
                     )}
                     {reportType === 'users' && (
@@ -575,7 +478,7 @@ const AdminReports = () => {
                           {item.role}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          {new Date(item.createdAt).toLocaleString()}
+                          {formatDate(item.createdAt)}
                         </td>
                       </>
                     )}
@@ -583,6 +486,18 @@ const AdminReports = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+        {/* Rapor Sonuçları Boşsa */}
+        {!isLoading && reportData.length === 0 && (
+          <div className="mt-4 text-gray-100">
+            <p>
+              {reportType === 'appointments'
+                ? 'Seçili kriterlere göre randevu bulunamadı.'
+                : reportType === 'pets'
+                  ? 'Seçili kriterlere göre evcil hayvan bulunamadı.'
+                  : 'Seçili kriterlere göre kullanıcı bulunamadı.'}
+            </p>
           </div>
         )}
       </div>

@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const sql = require('mssql');
-const config = require('../config/database');
-const authenticateToken = require('../middleware/authMiddleware'); // JWT doğrulaması için middleware
+const sql = require('mssql'); // mssql paketini import et
+const config = require('../config/database'); // config dosyasını import et
+const authenticateToken = require('../middleware/authMiddleware');
 
 // Randevu Raporu (GET /api/reports/appointments) - Sadece admin
 router.get('/appointments', authenticateToken, async (req, res) => {
@@ -17,21 +17,24 @@ router.get('/appointments', authenticateToken, async (req, res) => {
                  FROM Appointments a
                  JOIN Pets p ON a.petId = p.id`;
     const request = new sql.Request();
+    let hasWhereClause = false;
 
     if (startDate && endDate) {
       query += ` WHERE a.date BETWEEN @startDate AND @endDate`;
       request.input('startDate', sql.DateTime, new Date(startDate));
       request.input('endDate', sql.DateTime, new Date(endDate));
+      hasWhereClause = true;
     }
 
     if (provider) {
-      query += startDate && endDate ? ` AND` : ` WHERE`;
+      query += hasWhereClause ? ` AND` : ` WHERE`;
       query += ` a.provider = @provider`;
       request.input('provider', sql.VarChar, provider);
+      hasWhereClause = true;
     }
 
     if (petType) {
-      query += startDate && endDate || provider ? ` AND` : ` WHERE`;
+      query += hasWhereClause ? ` AND` : ` WHERE`;
       query += ` p.species = @petType`;
       request.input('petType', sql.VarChar, petType);
     }
@@ -41,7 +44,7 @@ router.get('/appointments', authenticateToken, async (req, res) => {
     res.json(result.recordset);
   } catch (err) {
     console.error('Randevu raporu alınırken hata oluştu:', err.message);
-    res.status(500).send('Server Error');
+    res.status(500).send('Randevu raporu alınırken bir hata oluştu.');
   }
 });
 
@@ -56,26 +59,30 @@ router.get('/pets', authenticateToken, async (req, res) => {
   try {
     let query = `SELECT * FROM Pets`;
     const request = new sql.Request();
+    let hasWhereClause = false;
 
     if (species) {
       query += ` WHERE species = @species`;
       request.input('species', sql.VarChar, species);
+      hasWhereClause = true;
     }
 
     if (gender) {
-      query += species ? ` AND` : ` WHERE`;
+      query += hasWhereClause ? ` AND` : ` WHERE`;
       query += ` gender = @gender`;
       request.input('gender', sql.VarChar, gender);
+      hasWhereClause = true;
     }
 
     if (minAge) {
-      query += species || gender ? ` AND` : ` WHERE`;
+      query += hasWhereClause ? ` AND` : ` WHERE`;
       query += ` age >= @minAge`;
       request.input('minAge', sql.Int, minAge);
+      hasWhereClause = true;
     }
 
     if (maxAge) {
-      query += species || gender || minAge ? ` AND` : ` WHERE`;
+      query += hasWhereClause ? ` AND` : ` WHERE`;
       query += ` age <= @maxAge`;
       request.input('maxAge', sql.Int, maxAge);
     }
@@ -84,7 +91,7 @@ router.get('/pets', authenticateToken, async (req, res) => {
     res.json(result.recordset);
   } catch (err) {
     console.error('Evcil hayvan raporu alınırken hata oluştu:', err.message);
-    res.status(500).send('Server Error');
+    res.status(500).send('Evcil hayvan raporu alınırken bir hata oluştu.');
   }
 });
 
@@ -97,17 +104,19 @@ router.get('/users', authenticateToken, async (req, res) => {
   const { startDate, endDate, role } = req.query;
 
   try {
-    let query = `SELECT id, username, email, role FROM Users`; // Şifre bilgisini çekmeyin!
+    let query = `SELECT id, username, email, role, createdAt FROM Users`; // Şifre bilgisini çekmeyin!
     const request = new sql.Request();
+    let hasWhereClause = false;
 
     if (startDate && endDate) {
-      query += ` WHERE createdAt BETWEEN @startDate AND @endDate`; // Kullanıcı tablosunda createdAt sütunu olduğunu varsayıyorum.
+      query += ` WHERE createdAt >= @startDate AND createdAt <= @endDate`;
       request.input('startDate', sql.DateTime, new Date(startDate));
       request.input('endDate', sql.DateTime, new Date(endDate));
+      hasWhereClause = true;
     }
 
     if (role) {
-      query += startDate && endDate ? ` AND` : ` WHERE`;
+      query += hasWhereClause ? ` AND` : ` WHERE`;
       query += ` role = @role`;
       request.input('role', sql.VarChar, role);
     }
@@ -116,7 +125,7 @@ router.get('/users', authenticateToken, async (req, res) => {
     res.json(result.recordset);
   } catch (err) {
     console.error('Kullanıcı raporu alınırken hata oluştu:', err.message);
-    res.status(500).send('Sunucu Hatası');
+    res.status(500).send('Kullanıcı raporu alınırken bir hata oluştu.');
   }
 });
 

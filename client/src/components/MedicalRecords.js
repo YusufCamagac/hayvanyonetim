@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getMedicalRecords, createMedicalRecord, getPets } from '../api';
+import dayjs from 'dayjs';
 
 const MedicalRecords = () => {
   const [medicalRecords, setMedicalRecords] = useState([]);
@@ -21,8 +22,8 @@ const MedicalRecords = () => {
         const response = await getMedicalRecords();
         setMedicalRecords(response.data);
       } catch (error) {
-        console.error('Tıbbi kayıtlar alınamadı:', error);
         setError('Tıbbi kayıtlar alınamadı.');
+        console.error('Tıbbi kayıtlar alınamadı:', error);
       } finally {
         setIsLoading(false);
       }
@@ -33,8 +34,8 @@ const MedicalRecords = () => {
         const response = await getPets();
         setPets(response.data);
       } catch (error) {
-        console.error('Evcil hayvanlar alınamadı:', error);
         setError('Evcil hayvanlar alınamadı.');
+        console.error('Evcil hayvanlar alınamadı:', error);
       }
     };
 
@@ -61,32 +62,38 @@ const MedicalRecords = () => {
         recordDate: '',
         description: '',
       });
-
       setMessage('Tıbbi kayıt başarıyla eklendi!');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
+      setMessage(error.message);
       console.error('Tıbbi kayıt eklenemedi:', error);
-      setError('Tıbbi kayıt eklenemedi.');
+      setTimeout(() => setMessage(""), 5000);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const formatDate = (date) => {
+    return dayjs(date).format('DD.MM.YYYY');
+  };
+
   return (
     <div className="bg-background p-4">
       <div className="container mx-auto">
-        <h2 className="text-2xl font-bold mb-4 text-yellow-400">
+        <h2 className="text-2xl font-bold mb-4 text-white">
           Tıbbi Kayıtlar
         </h2>
 
         {isLoading && <div className="mb-4 p-2 text-gray-100">Yükleniyor...</div>}
         {error && <div className="mb-4 p-2 bg-red-100 text-red-700">{error}</div>}
         {message && (
-          <div className="mb-4 p-2 bg-green-100 text-green-700">{message}</div>
+          <div className={`mb-4 p-2 ${message.startsWith("Tıbbi kayıt başarıyla") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+            {message}
+          </div>
         )}
 
         <form onSubmit={handleAddMedicalRecord} className="mb-8 space-y-4">
-          <h3 className="text-xl font-semibold text-gray-100">
+          <h3 className="text-xl font-semibold text-white">
             Yeni Kayıt Ekle
           </h3>
           <div className="flex flex-wrap -mx-4">
@@ -94,7 +101,7 @@ const MedicalRecords = () => {
               <div>
                 <label
                   htmlFor="newPetId"
-                  className="block mb-2 text-gray-100"
+                  className="block mb-2 text-white"
                 >
                   Evcil Hayvan
                 </label>
@@ -110,10 +117,10 @@ const MedicalRecords = () => {
                     border
                     rounded-md
                     bg-gray-700
-                    text-gray-100
+                    text-white
                     focus:outline-none
                     focus:ring-2
-                    focus:ring-yellow-400
+                    focus:ring-accent
                   "
                   required
                 >
@@ -130,7 +137,7 @@ const MedicalRecords = () => {
               <div>
                 <label
                   htmlFor="newRecordDate"
-                  className="block mb-2 text-gray-100"
+                  className="block mb-2 text-white"
                 >
                   Tarih
                 </label>
@@ -147,11 +154,11 @@ const MedicalRecords = () => {
                     border
                     rounded-md
                     bg-gray-700
-                    text-gray-100
+                    text-white
                     placeholder-gray-400
                     focus:outline-none
                     focus:ring-2
-                    focus:ring-yellow-400
+                    focus:ring-accent
                   "
                   required
                 />
@@ -161,7 +168,7 @@ const MedicalRecords = () => {
           <div>
             <label
               htmlFor="newDescription"
-              className="block mb-2 text-gray-100"
+              className="block mb-2 text-white"
             >
               Açıklama
             </label>
@@ -177,11 +184,11 @@ const MedicalRecords = () => {
                 border
                 rounded-md
                 bg-gray-700
-                text-gray-100
+                text-white
                 placeholder-gray-400
                 focus:outline-none
                 focus:ring-2
-                focus:ring-yellow-400
+                focus:ring-accent
               "
               required
               placeholder="Tıbbi kaydın detayları"
@@ -189,7 +196,7 @@ const MedicalRecords = () => {
           </div>
           <button
             type="submit"
-            className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 px-4 py-2 rounded-md"
+            className="bg-link hover:bg-link-hover text-gray-900 px-4 py-2 rounded-md"
           >
             Kayıt Ekle
           </button>
@@ -207,7 +214,7 @@ const MedicalRecords = () => {
                   Evcil Hayvan: {pet ? pet.name : 'Bilinmiyor'}
                 </p>
                 <p className="text-gray-100">
-                  Tarih: {new Date(record.recordDate).toLocaleDateString()}
+                  Tarih: {formatDate(record.recordDate)}
                 </p>
                 <p className="text-gray-100">
                   Açıklama: {record.description}

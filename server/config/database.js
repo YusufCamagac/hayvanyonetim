@@ -9,7 +9,7 @@ const config = {
     options: {
         encrypt: true,
         trustServerCertificate: true,
-        instanceName: 'SQLEXPRESS'
+        
     },
     port: 1433
 };

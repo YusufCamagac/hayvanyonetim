@@ -11,8 +11,6 @@ const Header = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setIsMenuOpen(false);
-    
     // Kullanıcı rolünü JWT'den çöz ve state'e kaydet
     if (isLoggedIn && token) {
       try {
@@ -25,20 +23,28 @@ const Header = () => {
     } else {
       setUserRole(null);
     }
-  }, [isLoggedIn, token, location]);
+  }, [isLoggedIn, token]);
 
   const handleLogout = () => {
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('token');
-    setIsMenuOpen(false);
-    navigate('/');
+    setUserRole(null);
+    // Kullanıcıyı, oturumu kapatmadan önceki sayfaya yönlendir
+    navigate(location.pathname);
+  };
+
+  const handleMenuClick = (event) => {
+    // Mobil menüde bir linke tıklandığında menünün otomatik olarak kapanmasını sağlar
+    if (window.innerWidth < 640) { // Tailwind'in `sm` breakpoint'i
+      setIsMenuOpen(false);
+    }
   };
 
   return (
     <header className="bg-header-bg text-gray-900 p-4">
       <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between">
         <div className="flex-grow flex justify-center sm:justify-start mb-4 sm:mb-0">
-          <Link to="/" className="text-2xl font-bold text-primary-500">
+          <Link to="/" className="text-2xl font-bold text-link">
             Evcil Hayvan Bakım Sistemi
           </Link>
         </div>
@@ -63,16 +69,13 @@ const Header = () => {
         </button>
 
         <div
-          className={`flex flex-col sm:flex-row w-full sm:w-auto ${
-            isMenuOpen ? '' : 'hidden sm:flex'
-          } mt-4 sm:mt-0`}
+          className={`flex flex-col sm:flex-row w-full sm:w-auto ${isMenuOpen ? '' : 'hidden sm:flex'
+            } mt-4 sm:mt-0`}
         >
-          <nav
-            className={`px-4 py-2 rounded-lg ${
-              isMenuOpen ? 'w-full bg-menu-bg' : ''
-            }`}
-          >
-            <ul className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 text-lg">
+          <nav className={`px-4 py-2 rounded-lg ${isMenuOpen ? 'w-full bg-menu-bg' : ''
+            }`}>
+            <ul className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 text-lg"
+              onClick={handleMenuClick}>
               {isLoggedIn && (
                 <>
                   <li>
@@ -80,10 +83,9 @@ const Header = () => {
                       to="/pet-registration"
                       className={({ isActive }) =>
                         isActive
-                          ? 'text-primary-500'
-                          : 'hover:text-primary-500 text-white'
+                          ? 'text-link'
+                          : 'hover:text-link-hover text-white'
                       }
-                      onClick={() => setIsMenuOpen(false)}
                     >
                       Evcil Hayvan Kaydı
                     </NavLink>
@@ -93,10 +95,9 @@ const Header = () => {
                       to="/appointment-scheduling"
                       className={({ isActive }) =>
                         isActive
-                          ? 'text-primary-500'
-                          : 'hover:text-primary-500 text-white'
+                          ? 'text-link'
+                          : 'hover:text-link-hover text-white'
                       }
-                      onClick={() => setIsMenuOpen(false)}
                     >
                       Randevu Al
                     </NavLink>
@@ -106,10 +107,9 @@ const Header = () => {
                       to="/medical-records"
                       className={({ isActive }) =>
                         isActive
-                          ? 'text-primary-500'
-                          : 'hover:text-primary-500 text-white'
+                          ? 'text-link'
+                          : 'hover:text-link-hover text-white'
                       }
-                      onClick={() => setIsMenuOpen(false)}
                     >
                       Tıbbi Kayıtlar
                     </NavLink>
@@ -119,10 +119,9 @@ const Header = () => {
                       to="/reminders"
                       className={({ isActive }) =>
                         isActive
-                          ? 'text-primary-500'
-                          : 'hover:text-primary-500 text-white'
+                          ? 'text-link'
+                          : 'hover:text-link-hover text-white'
                       }
-                      onClick={() => setIsMenuOpen(false)}
                     >
                       Hatırlatıcılar
                     </NavLink>
@@ -137,23 +136,21 @@ const Header = () => {
                       to="/admin"
                       className={({ isActive }) =>
                         isActive
-                          ? 'text-primary-500'
-                          : 'hover:text-primary-500 text-white'
+                          ? 'text-link'
+                          : 'hover:text-link-hover text-white'
                       }
-                      onClick={() => setIsMenuOpen(false)}
                     >
                       Yönetici Paneli
                     </NavLink>
                   </li>
                   <li>
                     <NavLink
-                      to="/admin/users"
+                      to="/admin/management/users"
                       className={({ isActive }) =>
                         isActive
-                          ? 'text-primary-500'
-                          : 'hover:text-primary-500 text-white'
+                          ? 'text-link'
+                          : 'hover:text-link-hover text-white'
                       }
-                      onClick={() => setIsMenuOpen(false)}
                     >
                       Kullanıcı Yönetimi
                     </NavLink>
@@ -164,15 +161,14 @@ const Header = () => {
                 {isLoggedIn ? (
                   <button
                     onClick={handleLogout}
-                    className="hover:text-primary-500 text-white"
+                    className="hover:text-link-hover text-white"
                   >
                     Çıkış Yap
                   </button>
                 ) : (
                   <Link
                     to="/login"
-                    className="hover:text-primary-500 text-white"
-                    onClick={() => setIsMenuOpen(false)}
+                    className="hover:text-link-hover text-white"
                   >
                     Giriş Yap
                   </Link>

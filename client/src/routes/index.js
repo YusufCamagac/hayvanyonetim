@@ -16,6 +16,7 @@ import MainLayout from '../layouts/MainLayout';
 import AdminLayout from '../layouts/AdminLayout';
 import Register from '../components/Register';
 import AdminReports from '../components/AdminReports';
+import UserProfile from '../components/UserProfile';
 
 const AppRoutes = () => {
   return (
@@ -26,68 +27,27 @@ const AppRoutes = () => {
         <Route path="pet-registration" element={<PetRegistration />} />
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
-        <Route
-          path="appointment-scheduling"
-          element={
-            <PrivateRoute>
-              <AppointmentScheduling />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="medical-records"
-          element={
-            <PrivateRoute>
-              <MedicalRecords />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="reminders"
-          element={
-            <PrivateRoute>
-              <Reminders />
-            </PrivateRoute>
-          }
-        />
-        {/* Kullanıcı sadece kendi bilgilerini görebilmeli */}
-        <Route
-          path="user-management"
-          element={
-            <PrivateRoute>
-              <UserManagement />
-            </PrivateRoute>
-          }
-        />
+        <Route path="profile" element={<PrivateRoute><UserProfile /></PrivateRoute>} />
+        {/* Kullanıcı giriş yapmışsa, aşağıdaki rotalara erişebilir */}
+        <Route path="/" element={<PrivateRoute />}>
+          <Route path="appointment-scheduling" element={<AppointmentScheduling />} />
+          <Route path="medical-records" element={<MedicalRecords />} />
+          <Route path="reminders" element={<Reminders />} />
+        </Route>
       </Route>
 
-      {/* Admin Layout ve Rotaları */}
-      <Route
-        path="/admin"
-        element={
-          <PrivateRoute roles={['admin']}>
-            <AdminLayout />
-          </PrivateRoute>
-        }
-      >
-        <Route
-          path="/admin/reports"
-          element={
-              <PrivateRoute roles={['admin']}>
-                  <AdminReports />
-              </PrivateRoute>
-            }
-        />
+      {/* Admin Layout ve Rotaları - Sadece 'admin' rolüne sahip kullanıcılar erişebilir */}
+      <Route path="/admin" element={<PrivateRoute roles={['admin']}><AdminLayout /></PrivateRoute>}>
         <Route index element={<AdminManagement />} />
-        <Route path="users" element={<UserManagement />} />
-        <Route path="pets" element={<PetsManagement />} />
-        <Route path="appointments" element={<AppointmentsManagement />} />
-        <Route path="medical-records" element={<MedicalRecordsManagement />} />
+        <Route path="management/users" element={<UserManagement />} />
+        <Route path="management/pets" element={<PetsManagement />} />
+        <Route path="management/appointments" element={<AppointmentsManagement />} />
+        <Route path="management/medical-records" element={<MedicalRecordsManagement />} />
         <Route path="reports" element={<AdminReports />} />
       </Route>
 
       {/* Tanımsız rotalar için yönlendirme */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
 };

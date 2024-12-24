@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-  getMedicalRecords,
-  updateMedicalRecord,
-  deleteMedicalRecord,
-  getPets,
-} from '../api';
+import { getMedicalRecords, updateMedicalRecord, deleteMedicalRecord, getPets } from '../api';
+import dayjs from 'dayjs'; // dayjs import edildi
 
 const MedicalRecordsManagement = () => {
   const [medicalRecords, setMedicalRecords] = useState([]);
@@ -26,8 +22,8 @@ const MedicalRecordsManagement = () => {
         const response = await getPets();
         setPets(response.data);
       } catch (error) {
-        console.error('Evcil hayvanlar alınamadı:', error);
         setError('Evcil hayvanlar alınamadı.');
+        console.error('Evcil hayvanlar alınamadı:', error);
       }
     };
     fetchPets();
@@ -41,8 +37,8 @@ const MedicalRecordsManagement = () => {
       const response = await getMedicalRecords();
       setMedicalRecords(response.data);
     } catch (error) {
-      console.error('Tıbbi kayıtlar alınamadı:', error);
       setError('Tıbbi kayıtlar alınamadı.');
+      console.error('Tıbbi kayıtlar alınamadı:', error);
     } finally {
       setIsLoading(false);
     }
@@ -74,8 +70,8 @@ const MedicalRecordsManagement = () => {
         setMessage('Tıbbi kayıt başarıyla silindi.');
         setTimeout(() => setMessage(''), 3000);
       } catch (error) {
-        console.error('Tıbbi kayıt silinemedi:', error);
         setError('Tıbbi kayıt silinemedi.');
+        console.error('Tıbbi kayıt silinemedi:', error);
       } finally {
         setIsLoading(false);
       }
@@ -106,8 +102,8 @@ const MedicalRecordsManagement = () => {
         setMessage('Tıbbi kayıt başarıyla güncellendi.');
         setTimeout(() => setMessage(''), 3000);
       } catch (error) {
-        console.error('Tıbbi kayıt güncellenemedi:', error);
         setError('Tıbbi kayıt güncellenemedi.');
+        console.error('Tıbbi kayıt güncellenemedi:', error);
       } finally {
         setIsLoading(false);
       }
@@ -126,10 +122,14 @@ const MedicalRecordsManagement = () => {
     setError(null);
   };
 
+  const formatDate = (date) => {
+    return dayjs(date).format('DD.MM.YYYY'); // dayjs burada kullanılıyor
+  };
+
   return (
     <div className="bg-background p-4">
       <div className="container mx-auto">
-        <h2 className="text-2xl font-bold mb-4 text-yellow-400">
+        <h2 className="text-2xl font-bold mb-4 text-headings">
           Tıbbi Kayıtları Yönet
         </h2>
 
@@ -153,7 +153,7 @@ const MedicalRecordsManagement = () => {
                   Evcil Hayvan: {pet ? pet.name : 'Bilinmiyor'}
                 </p>
                 <p className="text-gray-100">
-                  Kayıt Tarihi: {new Date(record.recordDate).toLocaleDateString()}
+                  Kayıt Tarihi: {formatDate(record.recordDate)}
                 </p>
                 <p className="text-gray-100">
                   Açıklama: {record.description}
@@ -207,7 +207,7 @@ const MedicalRecordsManagement = () => {
                         text-gray-100
                         focus:outline-none
                         focus:ring-2
-                        focus:ring-yellow-400
+                        focus:ring-accent
                       "
                       required
                     >
@@ -245,7 +245,7 @@ const MedicalRecordsManagement = () => {
                         placeholder-gray-400
                         focus:outline-none
                         focus:ring-2
-                        focus:ring-yellow-400
+                        focus:ring-accent
                       "
                       required
                     />
@@ -275,7 +275,7 @@ const MedicalRecordsManagement = () => {
                     placeholder-gray-400
                     focus:outline-none
                     focus:ring-2
-                    focus:ring-yellow-400
+                    focus:ring-accent
                   "
                   placeholder="Tıbbi kayıt detayları"
                 />
@@ -283,7 +283,7 @@ const MedicalRecordsManagement = () => {
               <div className="flex items-center">
                 <button
                   type="submit"
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md mr-2"
+                  className="bg-accent hover:bg-yellow-500 text-gray-900 px-4 py-2 rounded-md mr-2"
                 >
                   Kaydet
                 </button>

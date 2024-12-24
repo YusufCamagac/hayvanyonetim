@@ -10,6 +10,7 @@ const UserManagement = () => {
     username: '',
     email: '',
     password: '',
+    confirmPassword: '',
     role: 'user',
   });
   const [message, setMessage] = useState('');
@@ -27,8 +28,8 @@ const UserManagement = () => {
       const response = await getUsers();
       setUsers(response.data);
     } catch (error) {
-      console.error('Kullanıcılar alınamadı:', error);
       setError('Kullanıcılar alınamadı.');
+      console.error('Kullanıcılar alınamadı:', error);
     } finally {
       setIsLoading(false);
     }
@@ -40,7 +41,8 @@ const UserManagement = () => {
       username: user.username,
       email: user.email,
       role: user.role,
-      password: '',
+      password: '', // Düzenleme modunda şifre alanını boş bırak
+      confirmPassword: '',
     });
     setEditMode(true);
     setAddMode(false);
@@ -61,8 +63,8 @@ const UserManagement = () => {
         setMessage('Kullanıcı başarıyla silindi.');
         setTimeout(() => setMessage(''), 3000);
       } catch (error) {
-        console.error('Kullanıcı silinemedi:', error);
         setError('Kullanıcı silinemedi.');
+        console.error('Kullanıcı silinemedi:', error);
       } finally {
         setIsLoading(false);
       }
@@ -77,43 +79,48 @@ const UserManagement = () => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
-    if (editMode) {
-      try {
-        const response = await updateUser(selectedUser.id, formData);
-        setUsers(
-          users.map((user) =>
-            user.id === selectedUser.id ? response.data : user
-          )
-        );
-        setSelectedUser(null);
-        setEditMode(false);
+
+    // Şifre kontrolü (sadece ekleme modunda)
+    if (addMode && formData.password !== formData.confirmPassword) {
+      setMessage("Şifreler eşleşmiyor.");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      let response;
+      if (editMode) {
+        // Şifre boşsa güncelleme verisinden çıkar
+        const updatedData = { ...formData };
+        if (!formData.password) {
+          delete updatedData.password;
+        }
+        response = await updateUser(selectedUser.id, updatedData);
+        setUsers(users.map((user) => user.id === selectedUser.id ? response.data : user));
         setMessage('Kullanıcı başarıyla güncellendi.');
-        setTimeout(() => setMessage(''), 3000);
-      } catch (error) {
-        console.error('Kullanıcı güncellenemedi:', error);
-        setError('Kullanıcı güncellenemedi.');
-      } finally {
-        setIsLoading(false);
-      }
-    } else if (addMode) {
-      try {
-        const response = await createUser(formData);
+      } else if (addMode) {
+        response = await createUser(formData);
         setUsers([...users, response.data]);
-        setAddMode(false);
-        setFormData({
-          username: '',
-          email: '',
-          password: '',
-          role: 'user',
-        });
         setMessage('Kullanıcı başarıyla eklendi.');
-        setTimeout(() => setMessage(''), 3000);
-      } catch (error) {
-        console.error('Kullanıcı eklenemedi:', error);
-        setError('Kullanıcı eklenemedi.');
-      } finally {
-        setIsLoading(false);
       }
+
+      setSelectedUser(null);
+      setEditMode(false);
+      setAddMode(false);
+      setFormData({
+        username: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        role: 'user',
+      });
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      setMessage(error.message);
+      console.error('İşlem sırasında hata oluştu:', error);
+      setTimeout(() => setMessage(""), 5000);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -125,6 +132,7 @@ const UserManagement = () => {
       username: '',
       email: '',
       password: '',
+      confirmPassword: '',
       role: 'user',
     });
     setMessage('');
@@ -139,6 +147,7 @@ const UserManagement = () => {
       username: '',
       email: '',
       password: '',
+      confirmPassword: '',
       role: 'user',
     });
     setMessage('');
@@ -148,20 +157,22 @@ const UserManagement = () => {
   return (
     <div className="bg-background p-4">
       <div className="container mx-auto">
-        <h2 className="text-2xl font-bold mb-4 text-yellow-400">
+        <h2 className="text-2xl font-bold mb-4 text-headings">
           Kullanıcı Yönetimi
         </h2>
 
         {isLoading && <div className="mb-4 p-2 text-gray-100">Yükleniyor...</div>}
         {error && <div className="mb-4 p-2 bg-red-100 text-red-700">{error}</div>}
         {message && (
-          <div className="mb-4 p-2 bg-green-100 text-green-700">{message}</div>
+          <div className={`mb-4 p-2 ${message.startsWith("Kullanıcı başarıyla") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+            {message}
+          </div>
         )}
 
         <div className="mb-4">
           <button
             onClick={handleAdd}
-            className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 px-4 py-2 rounded-md"
+            className="bg-accent hover:bg-yellow-500 text-gray-900 px-4 py-2 rounded-md"
           >
             Yeni Kullanıcı Ekle
           </button>
@@ -216,7 +227,7 @@ const UserManagement = () => {
                   value={formData.username}
                   onChange={handleChange}
                   className="
-                    w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none  focus:ring-2  focus:ring-yellow-400"
+                    w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent"
                   required
                   placeholder="Kullanıcı adı"
                 />
@@ -234,30 +245,50 @@ const UserManagement = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 "
+                  className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent"
                   required
                   placeholder="E-posta adresi"
                 />
               </div>
               {addMode && (
-                <div>
-                  <label
-                    htmlFor="password"
-                    className="block mb-2 text-gray-100"
-                  >
-                    Şifre
-                  </label>
-                  <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                    required
-                    placeholder="Şifre"
-                  />
-                </div>
+                <>
+                  <div>
+                    <label
+                      htmlFor="password"
+                      className="block mb-2 text-gray-100"
+                    >
+                      Şifre
+                    </label>
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent"
+                      required
+                      placeholder="Şifre"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="confirmPassword"
+                      className="block mb-2 text-gray-100"
+                    >
+                      Şifre Tekrar
+                    </label>
+                    <input
+                      type="password"
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent"
+                      required
+                      placeholder="Şifreyi tekrar girin"
+                    />
+                  </div>
+                </>
               )}
               <div>
                 <label htmlFor="role" className="block mb-2 text-gray-100">
@@ -268,7 +299,7 @@ const UserManagement = () => {
                   name="role"
                   value={formData.role}
                   onChange={handleChange}
-                  className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  className=" w-full px-3 py-2 border rounded-md bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-accent"
                 >
                   <option value="user">Kullanıcı</option>
                   <option value="admin">Admin</option>
@@ -277,11 +308,7 @@ const UserManagement = () => {
               <div className="flex items-center">
                 <button
                   type="submit"
-                  className={`bg-${
-                    editMode ? 'blue' : 'yellow'
-                  }-500 hover:bg-${
-                    editMode ? 'blue' : 'yellow'
-                  }-600 text-white px-4 py-2 rounded-md mr-2`}
+                  className={`bg-accent hover:bg-yellow-500 text-gray-900 px-4 py-2 rounded-md mr-2`}
                 >
                   {editMode ? 'Kaydet' : 'Ekle'}
                 </button>
